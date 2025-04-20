@@ -13,7 +13,7 @@ type Props = {
   setSelectedTaxa: React.Dispatch<React.SetStateAction<string[]>>
 }
 
-const typeOptions = ['Cryptid', 'Lantern', 'Trail', 'Supply', 'Memory Trap']
+const typeOptions = ['Cryptid', 'Lantern', 'Trail', 'Supply', 'Memory', 'Trap']
 const cabinOptions = ['Obsidian', 'Quartz', 'Fluorite', 'Meteorite', 'Malachite', 'Fulgurite', 'Lapis', 'Corallium']
 const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Unique']
 
@@ -162,11 +162,13 @@ export default function Sidebar({
             <div className="border rounded p-2 max-h-64 overflow-y-auto space-y-2 bg-white/10">
               {[
                 'All Taxa',
-                'Alien', 'Angel', 'Avian', 'Bovine', 'Canine', 'Caprid', 'Celestial', 'Cervine',
-                'Demon', 'Deity', 'Draconid', 'Dulcis', 'Elemental', 'Equine', 'Fae', 'Feline',
-                'Golem', 'Humanoid', 'Impersator', 'Insectoid', 'Interloper', 'Invader',
-                'Lagomorph', 'Magus', 'Mecha', 'Observer', 'Phantom', 'Prophet', 'Revenant',
-                'Rodent', 'Sanguivore', 'Saurian', 'Serpent', 'Spirit'
+                'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
+                'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
+                'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
+                'Impersator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Magus',
+                'Mecha', 'Mer', 'Observer', 'Phantom', 'Piscis', 'Prophet', 'Revenant',
+                'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
+                'Suid', 'Ursa', 'Vermis', 'Yokai'
               ].map((taxon) => (
                 <label key={taxon} className="flex items-center text-sm text-white">
                   <input
