@@ -6,13 +6,7 @@ import CardDetail from '@/app/components/CardDetail'
 
 type CardRow = CryptidCampCard & RowDataPacket
 
-interface CardDetailPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default async function CardDetailPage({ params }: CardDetailPageProps) {
+export default async function CardDetailPage({ params }: { params: Record<string, string> }) {
   const [rows] = await db.query<CardRow[]>(`
     SELECT 
       c.*, 
