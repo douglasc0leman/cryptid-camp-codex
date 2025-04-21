@@ -6,8 +6,8 @@ import CardDetail from '@/app/components/CardDetail'
 
 type CardRow = CryptidCampCard & RowDataPacket
 
-export default async function CardDetailPage(props: { params: { id: string } }) {
-  const { params } = await Promise.resolve(props) // 👈 This is the key line
+export default async function CardDetailPage(props: Awaited<ReturnType<() => Promise<{ params: { id: string } }>>>) {
+  const { params } = props
 
   const [rows] = await db.query<CardRow[]>(`
     SELECT 
