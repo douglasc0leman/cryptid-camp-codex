@@ -6,8 +6,9 @@ import CardDetail from '@/app/components/CardDetail'
 
 type CardRow = CryptidCampCard & RowDataPacket
 
-// 🧠 No custom PageProps, no Awaited, no `any`
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page(props: any) {
+  const id = props?.params?.id
+
   const [rows] = await db.query<CardRow[]>(`
     SELECT 
       c.*, 
@@ -16,7 +17,7 @@ export default async function Page({ params }: { params: { id: string } }) {
     LEFT JOIN Cabin cabin ON c.cabin_id = cabin.id
     WHERE c.id = ?
     LIMIT 1
-  `, [params.id])
+  `, [id])
 
   const card = rows[0] ?? null
   if (!card) return notFound()
