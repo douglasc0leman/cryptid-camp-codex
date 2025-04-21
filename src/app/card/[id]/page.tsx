@@ -6,7 +6,9 @@ import CardDetail from '@/app/components/CardDetail'
 
 type CardRow = CryptidCampCard & RowDataPacket
 
-export default async function CardDetailPage({ params }: { params: Record<string, string> }) {
+export default async function CardDetailPage(props: any) {
+  const id = props.params?.id
+
   const [rows] = await db.query<CardRow[]>(`
     SELECT 
       c.*, 
@@ -15,7 +17,7 @@ export default async function CardDetailPage({ params }: { params: Record<string
     LEFT JOIN Cabin cabin ON c.cabin_id = cabin.id
     WHERE c.id = ?
     LIMIT 1
-  `, [params.id])
+  `, [id])
 
   const card = rows[0] ?? null
   if (!card) return notFound()
