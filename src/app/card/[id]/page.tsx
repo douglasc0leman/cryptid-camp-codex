@@ -6,9 +6,16 @@ import CardDetail from '@/app/components/CardDetail'
 
 type CardRow = CryptidCampCard & RowDataPacket
 
-export default async function CardDetailPage({ params }: { params: { id: string } }) {
-  const resolvedParams = await params; // Await the params object
-  const cardId = resolvedParams.id;   // Now access the 'id' property
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function CardDetailPage({ params }: PageProps) {
+  const { id } = await params;
+
+// export default async function CardDetailPage({ params }: { params: { id: string } }) {
+//   const resolvedParams = await params;
+//   const cardId = resolvedParams.id;
 
   const [rows] = await db.query<CardRow[]>(`
     SELECT
@@ -18,7 +25,7 @@ export default async function CardDetailPage({ params }: { params: { id: string 
     LEFT JOIN Cabin cabin ON c.cabin_id = cabin.id
     WHERE c.id = ?
     LIMIT 1
-  `, [cardId]);
+  `, [id]);
 
   const card = rows[0] ?? null
   if (!card) return notFound()
