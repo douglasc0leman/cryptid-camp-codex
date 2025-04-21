@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     LEFT JOIN Cabin cabin ON c.cabin_id = cabin.id
   `
   const whereClauses: string[] = []
-  const values: any[] = []
+  const values: string[] = [] // 👈 Fixed the 'any' issue here
 
   // Use AND instead of OR to require ALL selected taxa to match
   if (taxa.length > 0) {
