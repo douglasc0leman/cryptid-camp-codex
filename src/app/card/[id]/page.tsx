@@ -6,18 +6,19 @@ import CardDetail from '@/app/components/CardDetail'
 
 type CardRow = CryptidCampCard & RowDataPacket
 
-export default async function Page(props: any) {
-  const id = props?.params?.id
+export default async function CardDetailPage({ params }: { params: { id: string } }) {
+  const resolvedParams = await params; // Await the params object
+  const cardId = resolvedParams.id;   // Now access the 'id' property
 
   const [rows] = await db.query<CardRow[]>(`
-    SELECT 
-      c.*, 
-      cabin.name AS cabin 
+    SELECT
+      c.*,
+      cabin.name AS cabin
     FROM Card c
     LEFT JOIN Cabin cabin ON c.cabin_id = cabin.id
     WHERE c.id = ?
     LIMIT 1
-  `, [id])
+  `, [cardId]);
 
   const card = rows[0] ?? null
   if (!card) return notFound()
