@@ -9,8 +9,8 @@ export async function GET(req: NextRequest) {
   let query = `
     SELECT 
       c.*, cabin.name AS cabin
-    FROM Card c
-    LEFT JOIN Cabin cabin ON c.cabin_id = cabin.id
+    FROM card c
+    LEFT JOIN cabin cabin ON c.cabin_id = cabin.id
   `
   const whereClauses: string[] = []
   const values: string[] = [] // 👈 Fixed the 'any' issue here

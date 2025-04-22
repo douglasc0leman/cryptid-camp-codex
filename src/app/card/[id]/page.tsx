@@ -17,8 +17,8 @@ export default async function CardDetailPage({ params }: PageProps) {
     SELECT
       c.*,
       cabin.name AS cabin
-    FROM Card c
-    LEFT JOIN Cabin cabin ON c.cabin_id = cabin.id
+    FROM card c
+    LEFT JOIN cabin cabin ON c.cabin_id = cabin.id
     WHERE c.id = ?
     LIMIT 1
   `, [id]);
