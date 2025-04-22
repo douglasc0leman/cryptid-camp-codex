@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import CardGrid from '../components/CardGrid'
 import Pagination from '../components/Pagination'
 import Sidebar from '../components/Sidebar'
@@ -11,15 +11,18 @@ import Image from 'next/image'
 export default function HomeClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
 
   const pageFromUrl = parseInt(searchParams.get('page') || '1', 10)
 
   const [cards, setCards] = useState<CryptidCampCard[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isRoutingToCard, setIsRoutingToCard] = useState(false) // ✅ NEW
+
   const [selectedType, setSelectedType] = useState('')
   const [selectedCabin, setSelectedCabin] = useState('')
   const [selectedRarity, setSelectedRarity] = useState('')
   const [selectedTaxa, setSelectedTaxa] = useState<string[]>([])
-
   const [inputValue, setInputValue] = useState(searchParams.get('search') || '')
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
 
@@ -43,6 +46,8 @@ export default function HomeClient() {
 
   useEffect(() => {
     const fetchCards = async () => {
+      setLoading(true)
+
       const queryParams = new URLSearchParams()
       if (selectedTaxa.length > 0) {
         queryParams.set('taxa', selectedTaxa.join(','))
@@ -56,6 +61,7 @@ export default function HomeClient() {
       )
 
       setCards(sorted)
+      setLoading(false)
     }
 
     fetchCards()
@@ -75,7 +81,9 @@ export default function HomeClient() {
       if (searchQuery) params.set('search', searchQuery)
       else params.delete('search')
 
-      router.push(`/?${params.toString()}`)
+      startTransition(() => {
+        router.push(`/?${params.toString()}`)
+      })
 
       prevFilters.current = {
         type: selectedType,
@@ -120,7 +128,10 @@ export default function HomeClient() {
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', String(newPage))
     if (searchQuery) params.set('search', searchQuery)
-    router.push(`/?${params.toString()}`)
+
+    startTransition(() => {
+      router.push(`/?${params.toString()}`)
+    })
   }
 
   return (
@@ -146,7 +157,11 @@ export default function HomeClient() {
         <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-10" />
 
         <div className="relative z-40 p-8">
-          {filteredCards.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-gray-600"></div>
+            </div>
+          ) : filteredCards.length === 0 ? (
             <div className="text-center text-gray-600 mt-16 text-lg flex flex-col items-center space-y-4">
               <Image
                 src="/images/squonk.png"
@@ -159,7 +174,11 @@ export default function HomeClient() {
             </div>
           ) : (
             <>
-              <CardGrid cards={pagedCards} currentPage={pageFromUrl} />
+              <CardGrid
+                cards={pagedCards}
+                currentPage={pageFromUrl}
+                onCardClickStart={() => setIsRoutingToCard(true)} // ✅ Pass this down
+              />
               <Pagination
                 currentPage={pageFromUrl}
                 totalPages={totalPages}
@@ -168,6 +187,12 @@ export default function HomeClient() {
             </>
           )}
         </div>
+
+        {(isPending || isRoutingToCard) && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+          </div>
+        )}
       </main>
     </div>
   )
