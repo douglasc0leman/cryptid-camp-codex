@@ -13,10 +13,6 @@ interface PageProps {
 export default async function CardDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-// export default async function CardDetailPage({ params }: { params: { id: string } }) {
-//   const resolvedParams = await params;
-//   const cardId = resolvedParams.id;
-
   const [rows] = await db.query<CardRow[]>(`
     SELECT
       c.*,
