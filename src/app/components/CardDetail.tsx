@@ -239,7 +239,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
           onClick={() => setIsModalOpen(false)}
         >
-          <img
+          <Image
             src={card.image_url}
             alt={card.name}
             className="max-h-[90vh] max-w-full rounded shadow-xl"

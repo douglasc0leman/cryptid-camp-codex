@@ -94,7 +94,7 @@ export default function HomeClient() {
         search: searchQuery,
       }
     }
-  }, [selectedType, selectedCabin, selectedRarity, selectedTaxa, searchQuery])
+  }, [selectedType, selectedCabin, selectedRarity, selectedTaxa, searchQuery, router, searchParams])
 
   const filteredCards = cards.filter(card => {
     const matchName = card.name.toLowerCase().includes(searchQuery.toLowerCase())

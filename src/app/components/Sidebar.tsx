@@ -198,7 +198,7 @@ export default function Sidebar({
                     </div>
                   </div>
                 )}
-                renderThumb={({ props, index }) => {
+                renderThumb={({ props }) => {
                   const { key, ...rest } = props
                   return (
                     <div
