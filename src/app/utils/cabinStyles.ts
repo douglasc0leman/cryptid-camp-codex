@@ -7,4 +7,5 @@ export const cabinColorMap: Record<string, { bg: string; text: string }> = {
     fluorite: { bg: '#955ea5', text: 'text-white' },
     malachite: { bg: '#1a5428', text: 'text-white' },
     fulgurite: { bg: '#81e6d9', text: 'text-gray-900' },
+    gem: { bg: '#f8ce61', text: 'text-gray-900' },
   }

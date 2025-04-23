@@ -25,6 +25,7 @@ export default function HomeClient() {
   const [selectedTaxa, setSelectedTaxa] = useState<string[]>([])
   const [inputValue, setInputValue] = useState(searchParams.get('search') || '')
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const [costRange, setCostRange] = useState<[number, number]>([0, 5])
 
   const itemsPerPage = 12
 
@@ -97,6 +98,7 @@ export default function HomeClient() {
 
   const filteredCards = cards.filter(card => {
     const matchName = card.name.toLowerCase().includes(searchQuery.toLowerCase())
+  
     const matchType = selectedType
       ? (card.is_cryptid && selectedType === 'cryptid') ||
         (card.is_lantern && selectedType === 'lantern') ||
@@ -105,20 +107,26 @@ export default function HomeClient() {
         (card.is_memory && selectedType === 'memory') ||
         (card.is_trap && selectedType === 'trap')
       : true
-
+  
     const matchCabin = selectedCabin
       ? card.cabin?.toLowerCase() === selectedCabin
       : true
-
+  
     const matchRarity = selectedRarity
       ? (selectedRarity === 'common' && card.is_common) ||
         (selectedRarity === 'uncommon' && card.is_uncommon) ||
         (selectedRarity === 'rare' && card.is_rare) ||
         (selectedRarity === 'unique' && card.is_unique)
       : true
-
-    return matchName && matchType && matchCabin && matchRarity
+  
+    const matchCost =
+      typeof card.cost === 'number' &&
+      card.cost >= costRange[0] &&
+      card.cost <= costRange[1]
+  
+    return matchName && matchType && matchCabin && matchRarity && matchCost
   })
+  
 
   const totalPages = Math.ceil(filteredCards.length / itemsPerPage)
   const start = (pageFromUrl - 1) * itemsPerPage
@@ -147,6 +155,8 @@ export default function HomeClient() {
         setSelectedTaxa={setSelectedTaxa}
         searchQuery={inputValue}
         setSearchQuery={setInputValue}
+        costRange={costRange}
+        setCostRange={setCostRange}
       />
 
       <main className="flex-1 relative overflow-y-auto">
@@ -174,16 +184,23 @@ export default function HomeClient() {
             </div>
           ) : (
             <>
-              <CardGrid
-                cards={pagedCards}
-                currentPage={pageFromUrl}
-                onCardClickStart={() => setIsRoutingToCard(true)} // ✅ Pass this down
-              />
-              <Pagination
-                currentPage={pageFromUrl}
-                totalPages={totalPages}
-                onPageChange={updatePage}
-              />
+              <div className="flex flex-col min-h-[calc(100vh-4rem)]"> {/* adjust 4rem if header exists */}
+                <div className="flex-1">
+                  <CardGrid
+                    cards={pagedCards}
+                    currentPage={pageFromUrl}
+                    onCardClickStart={() => setIsRoutingToCard(true)}
+                  />
+                </div>
+                <div className="mt-8">
+                  <Pagination
+                    currentPage={pageFromUrl}
+                    totalPages={totalPages}
+                    onPageChange={updatePage}
+                  />
+                </div>
+              </div>
+
             </>
           )}
         </div>
