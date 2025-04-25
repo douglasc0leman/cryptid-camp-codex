@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { NextRequest, NextResponse } from 'next/server'
+import type { RowDataPacket } from 'mysql2'
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url)
@@ -68,10 +69,7 @@ export async function GET(req: NextRequest) {
 
   query += ' ORDER BY c.name ASC'
 
-  const [rows] = await db.query(query, values as any)
+  const [rows] = await db.query<RowDataPacket[]>(query, values)
 
-  console.log('Executed Query:', query);
-console.log('With Values:', values);
-console.log('Result Count:', Array.isArray(rows) ? rows.length : 'not array');
   return NextResponse.json(rows)
 }
