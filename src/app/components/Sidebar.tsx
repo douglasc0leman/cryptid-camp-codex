@@ -16,10 +16,12 @@ type Props = {
   setSearchQuery: (value: string) => void
   costRange: [number, number]
   setCostRange: React.Dispatch<React.SetStateAction<[number, number]>>
+  isOpen?: boolean;
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const typeOptions = ['Cryptid', 'Lantern', 'Trail', 'Supply', 'Memory', 'Trap']
-const cabinOptions = ['Obsidian', 'Quartz', 'Fluorite', 'Meteorite', 'Malachite', 'Fulgurite', 'Lapis', 'Corallium']
+const typeOptions = ['Cryptid', 'Lantern', 'Trail', 'Supply', 'Memory', 'Trap', 'Environment']
+const cabinOptions = ['Gem', 'Obsidian', 'Quartz', 'Fluorite', 'Meteorite', 'Malachite', 'Fulgurite', 'Lapis', 'Corallium']
 const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Unique']
 
 export default function Sidebar({

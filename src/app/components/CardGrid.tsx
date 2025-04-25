@@ -37,41 +37,48 @@ export default function CardGrid({
   }
 
   return (
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 min-h-[60vh]">
-{cards.map((card) => {
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2 sm:px-4 auto-rows-fr min-h-[60vh]">
+      {cards.map((card) => {
         const cabinKey = card.cabin?.toLowerCase() ?? ''
         const { bg, text } = cabinColorMap[cabinKey] || {
           bg: '#e2e8f0',
           text: 'text-gray-900',
         }
 
+        const shouldRotate =
+          card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
+
         return (
           <div
             key={card.id}
             onClick={() => handleCardClick(card)}
-            className={`w-full cursor-pointer p-4 rounded shadow hover:shadow-md transform transition duration-300 ease-in-out hover:scale-105 ${text}`}
+            className={`w-full h-[320px] flex flex-col cursor-pointer p-2 rounded shadow hover:shadow-md transform transition duration-300 ease-in-out hover:scale-105`}
             style={{ backgroundColor: bg }}
           >
-          <div className="w-full h-42 sm:h-48 md:h-52 xl:h-56 relative overflow-hidden rounded mb-3 bg-gray-100">
-
+            <div className="w-full h-[220px] relative overflow-hidden rounded mb-2 bg-gray-100 flex items-center justify-center">
               {card.image_url ? (
-                <Image
-                  src={getCardArtUrl(card.image_url)}
-                  alt={card.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 16vw"
-                />
+                <div
+                  className={`relative w-full h-full transition-transform duration-300 ${
+                    shouldRotate ? 'rotate-[-90deg] scale-[1.4]' : ''
+                  }`}
+                >
+                  <Image
+                    src={getCardArtUrl(card.image_url, card)}
+                    alt={card.name}
+                    fill
+                    className="object-cover w-full h-full"
+                    sizes="100vw"
+                  />
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-400 text-sm">
                   No Image
                 </div>
               )}
             </div>
+            <h2 className={`text-lg md:text-xl font-bold leading-tight truncate ${text}`}>{card.name}</h2>
 
-            <h2 className="text-lg font-semibold">{card.name}</h2>
-
-            <p className="text-sm opacity-90">
+            <p className={`text-base leading-snug truncate ${text}`}>
               {[
                 card.is_cryptid && 'Cryptid',
                 card.is_lantern && 'Lantern',
