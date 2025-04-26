@@ -1,4 +1,3 @@
-// Adjusted portrait image sizes to 1.4x and restored full right-hand content
 'use client'
 
 import { useMemo, useState } from 'react'
@@ -12,13 +11,12 @@ import { cabinColorMap } from '../utils/cabinStyles'
 export default function CardDetail({ card }: { card: CryptidCampCard }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const searchParams = useSearchParams()
-  const cabinFromQuery = searchParams.get('cabin') ?? '';
-
-  const { bg, text } = cabinColorMap[cabinFromQuery] ?? {
+  const bgFromQuery = searchParams.get('bg') ?? '';
+  const { bg, text } = cabinColorMap[bgFromQuery] ?? {
     bg: '#ffffff',
     text: 'text-gray-800',
   };
-
+  
   const textClass = text;
 
   const cabin = card.cabin?.toLowerCase() || ''
@@ -40,11 +38,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
   const backToCodexQuery = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString());
-  
-    // ❌ Remove cabin and page
-    params.delete('cabin');
-    params.delete('page');
-  
+    params.delete('bg'); 
     return params.toString();
   }, [searchParams]);
 
@@ -171,14 +165,22 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-          <div className={`relative ${isLandscape ? 'w-[540px] h-[405px]' : 'w-[546px] h-[756px]'}`}>
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className={`relative ${isLandscape
+                ? 'w-[360px] h-[270px] md:w-[720px] md:h-[540px]'
+                : 'w-[320px] h-[450px] md:w-[640px] md:h-[900px]'
+              }`}
+            onClick={(e) => e.stopPropagation()}>
+            {/* Image */}
             <Image
               src={card.watermark_url!}
               alt={card.name}
               fill
               className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg] scale-[1.2]' : ''}`}
-              onClick={(e) => e.stopPropagation()}
             />
           </div>
         </div>

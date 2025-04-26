@@ -153,13 +153,21 @@ export default function HomeClient() {
     });
   };
 
-  // 🔥 Super important: Auto-apply filters AFTER hydration if on desktop
   useEffect(() => {
     if (filtersLoaded && !isMobile && searchParams.toString()) {
       applyFilters();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtersLoaded, isMobile]);
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300); // Show button if scrolled down 300px
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);  
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-gray-800 relative">
@@ -268,6 +276,15 @@ export default function HomeClient() {
           </div>
         )}
       </main>
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-50 p-3 bg-black/50 text-white rounded-full shadow-lg hover:bg-black/70 transition"
+          aria-label="Scroll to Top"
+        >
+          <span className="text-2xl leading-none">↑</span>
+        </button>
+      )}
     </div>
   );
 }

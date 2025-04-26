@@ -28,7 +28,7 @@ export default function CardGrid({
 
   const handleCardClick = (card: CryptidCampCard) => {
     const cabinKey = card.cabin?.toLowerCase() ?? '';
-  
+    
     const queryParams = new URLSearchParams();
     
     if (filters.type) queryParams.set('type', filters.type);
@@ -38,9 +38,7 @@ export default function CardGrid({
     if (filters.search) queryParams.set('search', filters.search);
     queryParams.set('costMin', String(filters.costRange[0]));
     queryParams.set('costMax', String(filters.costRange[1]));
-  
-    // Always pass current card's cabin for the detail page background
-    queryParams.set('cabin', cabinKey);
+    queryParams.set('bg', cabinKey);
   
     const path = `/card/${card.id}?${queryParams.toString()}`;
   
@@ -49,8 +47,7 @@ export default function CardGrid({
       sessionStorage.setItem('scrollPosition', window.scrollY.toString());
     }
     router.push(path);
-  };
-  
+  };  
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2 sm:px-4 auto-rows-fr min-h-[60vh]">
@@ -69,7 +66,7 @@ export default function CardGrid({
             key={card.id}
             onClick={() => handleCardClick(card)}
             className={`w-full h-[320px] flex flex-col cursor-pointer p-2 rounded shadow hover:shadow-md transform transition duration-300 ease-in-out hover:scale-105`}
-            style={{ background: bg }} // ✅ updated here
+            style={{ background: bg }}
           >
             <div className="w-full h-[220px] relative overflow-hidden rounded mb-2 bg-gray-100 flex items-center justify-center">
               {card.image_url ? (

@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   const whereClauses: string[] = []
   const values: (string | number)[] = []
 
-  // ✅ Taxa (AND logic)
+  // Taxa
   if (taxa.length > 0) {
     taxa.forEach((taxon) => {
       whereClauses.push(`c.taxon LIKE ?`)
@@ -36,31 +36,31 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  // ✅ Type (boolean column)
+  // Type
   const allowedTypes = ['cryptid', 'lantern', 'trail', 'supply', 'memory', 'trap', 'environment']
   if (type && allowedTypes.includes(type)) {
     whereClauses.push(`c.is_${type} = 1`)
   }
 
-  // ✅ Rarity
+  // Rarity
   const allowedRarities = ['common', 'uncommon', 'rare', 'unique']
   if (rarity && allowedRarities.includes(rarity)) {
     whereClauses.push(`c.is_${rarity} = 1`)
   }
 
-  // ✅ Cabin
+  // Cabin
   if (cabin) {
     whereClauses.push(`LOWER(cabin.name) = LOWER(?)`)
     values.push(cabin)
   }
 
-  // ✅ Cost Range
+  // Cost Range
   if (!(costMin === '0' && costMax === '5')) {
     whereClauses.push(`(c.cost IS NULL OR c.cost BETWEEN ? AND ?)`)
     values.push(Number(costMin), Number(costMax))
   }
 
-  // ✅ Name search
+  // Name search
   if (search) {
     whereClauses.push(`c.name LIKE ?`)
     values.push(`%${search}%`)
@@ -72,7 +72,6 @@ export async function GET(req: NextRequest) {
 
   query += ' ORDER BY c.name ASC'
 
-  // 🆕 Add LIMIT and OFFSET for pagination
   query += ' LIMIT ? OFFSET ?'
   values.push(limit, offset)
 
