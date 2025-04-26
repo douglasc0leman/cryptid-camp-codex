@@ -1,11 +1,9 @@
-// Improved to conditionally show filter buttons on mobile only, and auto-apply filters on desktop
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef, useTransition } from 'react';
 import { Menu, X } from 'lucide-react';
 import CardGrid from '../components/CardGrid';
-import Pagination from '../components/Pagination';
 import Sidebar from '../components/Sidebar';
 import type { CryptidCampCard } from '../types/Card';
 import Image from 'next/image';
@@ -14,8 +12,7 @@ export default function HomeClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-
-  const pageFromUrl = parseInt(searchParams.get('page') || '1', 10);
+  const [filtersLoaded, setFiltersLoaded] = useState(false);
 
   const [cards, setCards] = useState<CryptidCampCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,42 +24,67 @@ export default function HomeClient() {
   const [selectedCabin, setSelectedCabin] = useState('');
   const [selectedRarity, setSelectedRarity] = useState('');
   const [selectedTaxa, setSelectedTaxa] = useState<string[]>([]);
-  const [inputValue, setInputValue] = useState(searchParams.get('search') || '');
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [inputValue, setInputValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [costRange, setCostRange] = useState<[number, number]>([0, 5]);
 
   const itemsPerPage = 12;
-
-  const prevFilters = useRef({
-    type: '',
-    cabin: '',
-    rarity: '',
-    taxa: [] as string[],
-    search: '',
-  });
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setSearchQuery(inputValue);
-    }, 300);
+    const type = searchParams.get('type') || '';
+    const cabin = searchParams.get('cabin') || '';
+    const rarity = searchParams.get('rarity') || '';
+    const taxa = searchParams.get('taxa')?.split(',') || [];
+    const search = searchParams.get('search') || '';
+    const costMin = Number(searchParams.get('costMin') || '0');
+    const costMax = Number(searchParams.get('costMax') || '5');
 
-    return () => clearTimeout(timeout);
-  }, [inputValue]);
+    setSelectedType(type);
+    setSelectedCabin(cabin);
+    setSelectedRarity(rarity);
+    setSelectedTaxa(taxa);
+    setInputValue(search);
+    setSearchQuery(search);
+    setCostRange([costMin, costMax]);
+    setFiltersLoaded(true);
+  }, [searchParams.toString()]);
+
+  useEffect(() => {
+    if (filtersLoaded) {
+      fetchCards(true);
+    }
+  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedTaxa, costRange, searchQuery]);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const fetchCards = async () => {
+  // Infinite scroll
+  useEffect(() => {
+    if (!loaderRef.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !loading && hasMore) {
+        fetchCards();
+      }
+    });
+    observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [loading, hasMore]);
+
+  const fetchCards = async (reset = false) => {
     setLoading(true);
 
     const queryParams = new URLSearchParams();
+    queryParams.set('offset', reset ? '0' : String(offset));
+    queryParams.set('limit', String(itemsPerPage));
 
     if (selectedTaxa.length > 0) queryParams.set('taxa', selectedTaxa.join(','));
     if (selectedType) queryParams.set('type', selectedType);
@@ -79,29 +101,39 @@ export default function HomeClient() {
       a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     );
 
-    setCards(sorted);
+    if (reset) {
+      setCards(sorted);
+      setOffset(itemsPerPage);
+      setHasMore(sorted.length >= itemsPerPage);
+    } else {
+      setCards((prev) => {
+        const existingIds = new Set(prev.map((c) => c.id));
+        const newCards = sorted.filter((c: CryptidCampCard) => !existingIds.has(c.id));
+        return [...prev, ...newCards];
+      });
+      setOffset((prev) => prev + itemsPerPage);
+      if (sorted.length < itemsPerPage) {
+        setHasMore(false);
+      }
+    }
+
     setLoading(false);
   };
 
   const applyFilters = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', '1');
+    const params = new URLSearchParams();
+    if (selectedType) params.set('type', selectedType);
+    if (selectedCabin) params.set('cabin', selectedCabin);
+    if (selectedRarity) params.set('rarity', selectedRarity);
+    if (selectedTaxa.length > 0) params.set('taxa', selectedTaxa.join(','));
     if (searchQuery) params.set('search', searchQuery);
-    else params.delete('search');
+    params.set('costMin', String(costRange[0]));
+    params.set('costMax', String(costRange[1]));
 
     startTransition(() => {
       router.push(`/?${params.toString()}`);
     });
 
-    prevFilters.current = {
-      type: selectedType,
-      cabin: selectedCabin,
-      rarity: selectedRarity,
-      taxa: selectedTaxa,
-      search: searchQuery,
-    };
-
-    fetchCards();
     setIsSidebarOpen(false);
   };
 
@@ -113,44 +145,34 @@ export default function HomeClient() {
     setInputValue('');
     setSearchQuery('');
     setCostRange([0, 5]);
-  };
-
-  useEffect(() => {
-    fetchCards();
-  }, []);
-
-  useEffect(() => {
-    if (!isMobile) {
-      applyFilters();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedType, selectedCabin, selectedRarity, selectedTaxa, costRange, searchQuery]);
-
-  const totalPages = Math.ceil(cards.length / itemsPerPage);
-  const start = (pageFromUrl - 1) * itemsPerPage;
-  const pagedCards = cards.slice(start, start + itemsPerPage);
-
-  const updatePage = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', String(newPage));
-    if (searchQuery) params.set('search', searchQuery);
+    setHasMore(true);
+    setOffset(0);
 
     startTransition(() => {
-      router.push(`/?${params.toString()}`);
+      router.push('/');
     });
   };
 
+  // 🔥 Super important: Auto-apply filters AFTER hydration if on desktop
+  useEffect(() => {
+    if (filtersLoaded && !isMobile && searchParams.toString()) {
+      applyFilters();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersLoaded, isMobile]);
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-gray-800 relative">
-      {/* Mobile Overlay */}
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden ${isSidebarOpen ? 'block' : 'hidden'}`}
-        onClick={() => setIsSidebarOpen(false)}
-      ></div>
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
       <div
-        className={`fixed md:static top-0 left-0 z-50 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto ${
+        className={`fixed md:static top-0 left-0 z-40 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
@@ -161,6 +183,7 @@ export default function HomeClient() {
           </button>
         </div>
         <Sidebar
+          key={`${selectedType}-${selectedCabin}-${selectedRarity}-${selectedTaxa.join(',')}-${costRange.join(',')}-${inputValue}`}
           selectedType={selectedType}
           setSelectedType={setSelectedType}
           selectedCabin={selectedCabin}
@@ -174,15 +197,8 @@ export default function HomeClient() {
           costRange={costRange}
           setCostRange={setCostRange}
         />
-        {/* Filter Buttons - mobile only */}
         {isMobile && (
           <div className="md:hidden px-4 pb-4 bg-white border-t pt-4 space-y-2">
-            <button
-              onClick={applyFilters}
-              className="w-full bg-indigo-600 text-white py-2 px-4 rounded shadow hover:bg-indigo-700"
-            >
-              Apply Filters
-            </button>
             <button
               onClick={clearFilters}
               className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded shadow hover:bg-gray-300"
@@ -194,22 +210,23 @@ export default function HomeClient() {
       </div>
 
       {/* Mobile Header */}
-      <header className="flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-30">
+      <header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-30">
         <h1 className="text-xl font-bold">Cryptid Camp Codex</h1>
         <button onClick={() => setIsSidebarOpen(true)}>
           <Menu className="w-6 h-6" />
         </button>
       </header>
 
-      <main className="flex-1 relative overflow-y-auto">
+      {/* Main Content */}
+      <main className="flex-1 relative overflow-y-auto pt-16">
         <div
           className="absolute inset-0 bg-cover bg-center z-0"
           style={{ backgroundImage: "url('/images/cardgrid-bg.png')" }}
         />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-10" />
 
-        <div className="relative z-40 p-8">
-          {loading ? (
+        <div className="relative z-20 p-8">
+          {loading && cards.length === 0 ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-gray-600"></div>
             </div>
@@ -226,22 +243,21 @@ export default function HomeClient() {
             </div>
           ) : (
             <>
-              <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-                <div className="flex-1">
-                  <CardGrid
-                    cards={pagedCards}
-                    currentPage={pageFromUrl}
-                    onCardClickStart={() => setIsRoutingToCard(true)}
-                  />
-                </div>
-                <div className="mt-8">
-                  <Pagination
-                    currentPage={pageFromUrl}
-                    totalPages={totalPages}
-                    onPageChange={updatePage}
-                  />
-                </div>
-              </div>
+              <CardGrid
+                cards={cards}
+                currentPage={1}
+                onCardClickStart={() => setIsRoutingToCard(true)}
+                filters={{
+                  type: selectedType,
+                  cabin: selectedCabin,
+                  rarity: selectedRarity,
+                  taxa: selectedTaxa,
+                  search: inputValue,
+                  costRange: costRange,
+                }}
+              />
+              <div ref={loaderRef} className="h-16"></div>
+              {loading && <p className="text-center my-4">Loading more cards...</p>}
             </>
           )}
         </div>

@@ -13,6 +13,9 @@ export async function GET(req: NextRequest) {
   const costMax = url.searchParams.get('costMax')
   const search = url.searchParams.get('search')
 
+  const offset = parseInt(url.searchParams.get('offset') || '0', 10)
+  const limit = parseInt(url.searchParams.get('limit') || '12', 10)
+
   const taxa = taxaQuery ? taxaQuery.split(',') : []
 
   let query = `
@@ -68,6 +71,10 @@ export async function GET(req: NextRequest) {
   }
 
   query += ' ORDER BY c.name ASC'
+
+  // 🆕 Add LIMIT and OFFSET for pagination
+  query += ' LIMIT ? OFFSET ?'
+  values.push(limit, offset)
 
   const [rows] = await db.query<RowDataPacket[]>(query, values)
 

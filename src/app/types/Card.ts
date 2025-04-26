@@ -13,7 +13,8 @@ export interface CryptidCampCard {
   set_name: string
   set_number: string
   illustrator: string
-  image_url: string | null // ✅ Marked nullable just in case
+  image_url: string | null 
+  watermark_url: string | null 
 
   // ✅ NEW - missing fields
   bounty_text: string | null

@@ -1,20 +1,25 @@
 // Adjusted portrait image sizes to 1.4x and restored full right-hand content
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CryptidCampCard } from '@/app/types/Card'
 import { Search } from 'lucide-react'
+import { cabinColorMap } from '../utils/cabinStyles'
 
 export default function CardDetail({ card }: { card: CryptidCampCard }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const searchParams = useSearchParams()
+  const cabinFromQuery = searchParams.get('cabin') ?? '';
 
-  const page = searchParams.get('page') ?? '1'
-  const bg = searchParams.get('bg') ?? '#ffffff'
-  const textClass = searchParams.get('text') ?? 'text-gray-800'
+  const { bg, text } = cabinColorMap[cabinFromQuery] ?? {
+    bg: '#ffffff',
+    text: 'text-gray-800',
+  };
+
+  const textClass = text;
 
   const cabin = card.cabin?.toLowerCase() || ''
   const needsDarkText =
@@ -33,6 +38,16 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
     Gem: '/images/gem.png',
   }
 
+  const backToCodexQuery = useMemo(() => {
+    const params = new URLSearchParams(searchParams.toString());
+  
+    // ❌ Remove cabin and page
+    params.delete('cabin');
+    params.delete('page');
+  
+    return params.toString();
+  }, [searchParams]);
+
   const badgeSrc = badgeMap[card.cabin!]
   const taxons = card.taxon?.split(' ') ?? []
   const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
@@ -47,14 +62,14 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
       <div
         className={`relative z-20 max-w-6xl mx-auto shadow-md rounded-lg overflow-hidden md:flex ${textClass}`}
-        style={{ backgroundColor: bg }}
+        style={{ background: bg }}
       >
         <div className={`p-6 flex items-center justify-center border-r border-gray-200 ${isLandscape ? 'md:w-[48%]' : 'md:w-1/3'}`}>
           <button onClick={() => setIsModalOpen(true)} className="focus:outline-none">
             <div className="relative group cursor-zoom-in transition-transform duration-200 transform hover:scale-105">
               <div className={`relative ${isLandscape ? 'w-[360px] h-[270px]' : 'w-[364px] h-[504px]'} overflow-hidden`}>
                 <Image
-                  src={card.image_url!}
+                  src={card.watermark_url!}
                   alt={card.name}
                   fill
                   className={`object-contain rounded ${isLandscape ? 'rotate-[-90deg] scale-[1.2]' : ''}`}
@@ -145,7 +160,10 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           </div>
 
           <div className="pt-10 pb-4 flex justify-center">
-            <Link href={`/?page=${page}`} className={`px-6 py-2 rounded-md font-semibold text-sm shadow transition ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+            <Link
+              href={backToCodexQuery ? `/?${backToCodexQuery}` : '/'}
+              className={`px-6 py-2 rounded-md font-semibold text-sm shadow transition ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+            >
               ← Back to Codex
             </Link>
           </div>
@@ -156,7 +174,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
           <div className={`relative ${isLandscape ? 'w-[540px] h-[405px]' : 'w-[546px] h-[756px]'}`}>
             <Image
-              src={card.image_url!}
+              src={card.watermark_url!}
               alt={card.name}
               fill
               className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg] scale-[1.2]' : ''}`}
