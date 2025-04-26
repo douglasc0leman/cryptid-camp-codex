@@ -8,9 +8,8 @@ import { cabinColorMap } from '../utils/cabinStyles'
 
 export default function CardGrid({
   cards,
-  currentPage,
   onCardClickStart,
-  filters, // ADD THIS
+  filters,
 }: {
   cards: CryptidCampCard[]
   currentPage: number
