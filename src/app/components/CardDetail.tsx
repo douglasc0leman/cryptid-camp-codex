@@ -1,40 +1,40 @@
 'use client';
 
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import Image from 'next/image'
-import Link from 'next/link'
-import { CryptidCampCard } from '@/app/types/Card'
-import { Search } from 'lucide-react'
-import { cabinColorMap } from '../utils/cabinStyles'
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { CryptidCampCard } from '@/app/types/Card';
+import { Search } from 'lucide-react';
+import { cabinColorMap } from '../utils/cabinStyles';
 
 export default function CardDetail({ card }: { card: CryptidCampCard }) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const searchParams = useSearchParams()
-  const bgFromQuery = searchParams.get('bg') ?? ''
-  const { bg, text } = cabinColorMap[bgFromQuery] ?? { bg: '#ffffff', text: 'text-gray-800' }
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const bgFromQuery = searchParams.get('bg') ?? '';
+  const { bg, text } = cabinColorMap[bgFromQuery] ?? { bg: '#ffffff', text: 'text-gray-800' };
 
-  const textClass = text
-  const cabin = card.cabin?.toLowerCase() || ''
-  const needsDarkText = ['#eaf4ff', '#edf2f7', '#ffffff'].includes(bg.toLowerCase()) || ['meteorite', 'corallium', 'gem', 'fulgurite', 'quartz'].includes(cabin)
+  const textClass = text;
+  const cabin = card.cabin?.toLowerCase() || '';
+  const needsDarkText = ['#eaf4ff', '#edf2f7', '#ffffff'].includes(bg.toLowerCase()) || ['meteorite', 'corallium', 'gem', 'fulgurite', 'quartz'].includes(cabin);
 
   const badgeMap: Record<string, string> = {
     Lapis: '/images/lapis.png', Obsidian: '/images/obsidian.png', Quartz: '/images/quartz.png',
     Corallium: '/images/corallium.png', Meteorite: '/images/meteorite.png',
     Fluorite: '/images/fluorite.png', Malachite: '/images/malachite.png', Fulgurite: '/images/fulgurite.png', Gem: '/images/gem.png'
-  }
+  };
 
   const backToCodexQuery = useMemo(() => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.delete('bg')
-    return params.toString()
-  }, [searchParams])
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('bg');
+    return params.toString();
+  }, [searchParams]);
 
-  const badgeSrc = badgeMap[card.cabin!]
+  const badgeSrc = badgeMap[card.cabin!];
 
   const taxons = useMemo(() => {
     if (!card.taxon) return [];
-  
+
     const allTaxa = [
       'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
       'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
@@ -44,17 +44,17 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
       'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
       'Suid', 'Ursa', 'Vermis', 'Yokai'
     ];
-  
+
     const splitTaxa = card.taxon.split(' ').filter(t => t.trim() !== '');
-  
+
     if (splitTaxa.length === 2 && splitTaxa[0] === '{All' && splitTaxa[1] === 'Taxa}') {
       return allTaxa;
     }
-  
+
     return splitTaxa;
   }, [card.taxon]);
 
-  const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
+  const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'));
 
   return (
     <div className="min-h-screen relative bg-gray-100 p-6 md:p-12 overflow-hidden">
@@ -62,21 +62,35 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
       <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-10" />
 
       <div className={`relative z-20 max-w-6xl mx-auto shadow-md rounded-lg overflow-hidden md:flex ${textClass}`} style={{ background: bg }}>
-        {/* Image Left */}
+        {/* Left - Image */}
         <div className={`p-6 flex items-center justify-center border-r border-gray-200 ${isLandscape ? 'md:w-[48%]' : 'md:w-1/3'}`}>
           <button onClick={() => setIsModalOpen(true)} className="focus:outline-none">
             <div className="relative group cursor-zoom-in transition-transform duration-200 transform hover:scale-105">
-              <div className={`relative overflow-visible ${isLandscape ? 'w-[540px] h-[360px]' : 'w-[364px] h-[504px]'}`}>
-                <Image src={card.watermark_url!} alt={card.name} fill className={`object-contain rounded ${isLandscape ? 'rotate-[-90deg] scale-[1.2]' : ''}`} />
-              </div>
-              <div className={`absolute inset-0 flex items-center justify-center ${isLandscape ? 'w-[540px] h-[360px]' : 'w-[364px] h-[504px]'} bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
+              {isLandscape ? (
+                <Image
+                  src={card.watermark_url!}
+                  alt={card.name}
+                  width={540}
+                  height={360}
+                  className="object-contain rounded rotate-[-90deg] scale-[1.2]"
+                />
+              ) : (
+                <Image
+                  src={card.watermark_url!}
+                  alt={card.name}
+                  width={364}
+                  height={504}
+                  className="object-contain rounded"
+                />
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <Search className="w-8 h-8 text-white" />
               </div>
             </div>
           </button>
         </div>
 
-        {/* Details Right */}
+        {/* Right - Details */}
         <div className="md:w-2/3 p-6 flex flex-col gap-4">
           {/* Mobile Badge */}
           {badgeSrc && (
@@ -86,18 +100,24 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
             </div>
           )}
 
-          {/* Top Section: Cost + Name */}
+          {/* Header Info */}
           <div className="flex items-start gap-4">
             {card.cost !== null && (
               <div className="relative group w-14 h-14 shrink-0">
-                <div className={`w-full h-full rounded-full flex items-center justify-center font-extrabold text-2xl shadow border ${needsDarkText ? 'bg-gray-200 text-gray-800 border-gray-300' : 'bg-white/20 text-white border-white/30'}`}>{card.cost}</div>
-                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-max px-3 py-1 rounded bg-black text-white text-xs opacity-0 group-hover:opacity-100">Requires {card.cost} Vision</div>
+                <div className={`w-full h-full rounded-full flex items-center justify-center font-extrabold text-2xl shadow border ${needsDarkText ? 'bg-gray-200 text-gray-800 border-gray-300' : 'bg-white/20 text-white border-white/30'}`}>
+                  {card.cost}
+                </div>
+                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-max px-3 py-1 rounded bg-black text-white text-xs opacity-0 group-hover:opacity-100">
+                  Requires {card.cost} Vision
+                </div>
               </div>
             )}
             <div className="flex-1">
               <h1 className="text-3xl font-bold leading-tight">
                 {card.name}{' '}
-                <span className="text-lg font-medium opacity-80">({card.is_cryptid ? 'Cryptid' : card.is_lantern ? 'Lantern' : card.is_trail ? 'Trail' : card.is_memory ? 'Memory' : card.is_trap ? 'Trap' : card.is_supply ? 'Supply' : 'Other'})</span>
+                <span className="text-lg font-medium opacity-80">
+                  ({card.is_cryptid ? 'Cryptid' : card.is_lantern ? 'Lantern' : card.is_trail ? 'Trail' : card.is_memory ? 'Memory' : card.is_trap ? 'Trap' : card.is_supply ? 'Supply' : 'Other'})
+                </span>
               </h1>
               {card.sub_text && <p className="text-sm mt-1">{card.sub_text}</p>}
             </div>
@@ -129,66 +149,35 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
                 <div className="bg-blue-200 text-blue-900 px-6 py-3 border-l border-white/40">{card.defense ?? 0} DEF</div>
               </div>
               {card.advantage && (
-                <div className="text-base font-semibold italic mt-3 text-center">
-                  {card.advantage}
-                </div>
+                <div className="text-base font-semibold italic mt-3 text-center">{card.advantage}</div>
               )}
             </div>
           )}
 
-          {/* Card Text, Set Info */}
-          <div>
-            {card.text_box && (
-              <div className="text-[15px] leading-relaxed">
+          {/* Card Text */}
+          {card.text_box && (
+            <div className="text-[15px] leading-relaxed mt-4 whitespace-pre-wrap">
+              {card.text_box}
+            </div>
+          )}
 
-                {/* Updated Card Text with badges in-line */}
-                <p className="mt-1 whitespace-pre-wrap">
-                  {(() => {
-                    const traitKeywords = [
-                      'Bloodsucker 1', 'Bloodsucker 2', 'Calm', 'Clear Sky', 'Day', 'Digger',
-                      'Flash', 'Flyer', 'Fog', 'Heat', 'Lethal', 'Night', 'Rain',
-                      'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
-                    ];
-
-                    // Split the text into parts where a trait + ':' appears
-                    const parts = card.text_box.split(new RegExp(`(${traitKeywords.join('|')}):`, 'g'));
-
-                    return parts.map((part, index) => {
-                      const trimmedPart = part.trim();
-                      if (traitKeywords.includes(trimmedPart)) {
-                        // This part is a recognized trait
-                        return (
-                          <span key={index} className={`inline-flex items-center gap-1`}>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${needsDarkText ? 'bg-blue-200 text-blue-800' : 'bg-white/20 text-white border border-white/20'}`}>
-                              {trimmedPart}
-                            </span>{': '}
-                          </span>
-                        );
-                      } else {
-                        // Just regular text
-                        return <span key={index}>{part}</span>;
-                      }
-                    });
-                  })()}
-                </p>
-              </div>
-            )}
-            {(card.illustrator || card.set_name || card.set_number) && (
-              <div className="mt-8 text-sm font-medium space-y-1">
-                {card.illustrator && <div>Illustrator: {card.illustrator}</div>}
-                {card.set_name && <div>Set: {card.set_name}</div>}
-                {card.set_number && <div>Card #: {card.set_number}</div>}
-              </div>
-            )}
-          </div>
-
+          {/* Illustrator, Set Name, Number */}
+          {(card.illustrator || card.set_name || card.set_number) && (
+            <div className="mt-8 text-sm font-medium space-y-1">
+              {card.illustrator && <div>Illustrator: {card.illustrator}</div>}
+              {card.set_name && <div>Set: {card.set_name}</div>}
+              {card.set_number && <div>Card #: {card.set_number}</div>}
+            </div>
+          )}
 
           {/* Flavor Text */}
           {card.flavor_text && (
-            <div className={`italic mt-8 border-l-4 pl-4 ${needsDarkText ? 'text-black/70 border-black/20' : 'text-white/70 border-white/40'}`}>“{card.flavor_text}”</div>
+            <div className={`italic mt-8 border-l-4 pl-4 ${needsDarkText ? 'text-black/70 border-black/20' : 'text-white/70 border-white/40'}`}>
+              “{card.flavor_text}”
+            </div>
           )}
 
-          {/* Back to Codex */}
+          {/* Back Button */}
           <div className="pt-10 pb-4 flex justify-center">
             <Link href={backToCodexQuery ? `/?${backToCodexQuery}` : '/'} className={`px-6 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}>
               ← Back to Codex
@@ -205,73 +194,30 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal (separate, clean) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-          <div
-            className={`relative ${isLandscape ? 'w-[540px] h-[360px] md:w-[720px] md:h-[540px]' : 'w-[320px] h-[450px] md:w-[640px] md:h-[900px]'}`}
-            onClick={e => e.stopPropagation()}>
-            <Image src={card.watermark_url!} alt={card.name} fill className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg] scale-[1.2]' : ''}`} />{/* Card Text, Set Info */}
-<div>
-  {card.text_box && (
-    <div className="leading-relaxed md:text-[17px] text-[15px]">
-      <h2 className="text-base font-semibold mt-4">Card Text</h2>
-      <p className="mt-2 whitespace-pre-wrap">
-        {(() => {
-          const traitKeywords = [
-            'Bloodsucker 1', 'Bloodsucker 2', 'Calm', 'Clear Sky', 'Day', 'Digger',
-            'Flash', 'Flyer', 'Fog', 'Heat', 'Lethal', 'Night', 'Rain',
-            'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
-          ];
-
-          const parts = card.text_box.split(new RegExp(`(${traitKeywords.join('|')}):`, 'g'));
-
-          return parts.map((part, index) => {
-            const trimmedPart = part.trim();
-            if (traitKeywords.includes(trimmedPart)) {
-              return (
-                <span key={index} className="inline-flex items-center gap-1">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${needsDarkText ? 'bg-blue-200 text-blue-800' : 'bg-white/20 text-white border border-white/20'}`}>
-                    {trimmedPart}
-                  </span>
-                  {': '}
-                </span>
-              );
-            } else {
-              return <span key={index}>{part}</span>;
-            }
-          });
-        })()}
-      </p>
-    </div>
-  )}
-  
-  {(card.illustrator || card.set_name || card.set_number) && (
-    <div className="mt-8 md:text-[17px] text-[15px] font-medium space-y-1">
-      {card.illustrator && <div>Illustrator: {card.illustrator}</div>}
-      {card.set_name && <div>Set: {card.set_name}</div>}
-      {card.set_number && <div>Card #: {card.set_number}</div>}
-    </div>
-  )}
-</div>
-
-{/* Flavor Text */}
-{card.flavor_text && (
-  <div className={`italic mt-10 border-l-4 pl-4 ${needsDarkText ? 'text-black/70 border-black/20' : 'text-white/70 border-white/40'} md:text-[17px] text-[15px]`}>
-    “{card.flavor_text}”
-  </div>
-)}
-
-{/* Back to Codex */}
-<div className="pt-10 pb-6 flex justify-center">
-  <Link href={backToCodexQuery ? `/?${backToCodexQuery}` : '/'} className={`px-6 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}>
-    ← Back to Codex
-  </Link>
-</div>
-
+          <div onClick={e => e.stopPropagation()} className="relative">
+            {isLandscape ? (
+              <Image
+                src={card.watermark_url!}
+                alt={card.name}
+                width={720}
+                height={540}
+                className="rounded shadow-xl object-contain rotate-[-90deg] scale-[1.2]"
+              />
+            ) : (
+              <Image
+                src={card.watermark_url!}
+                alt={card.name}
+                width={640}
+                height={900}
+                className="rounded shadow-xl object-contain"
+              />
+            )}
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
