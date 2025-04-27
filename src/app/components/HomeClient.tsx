@@ -13,6 +13,7 @@ export default function HomeClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [isLoaded, setIsLoaded] = useState(false);
   const [filtersLoaded, setFiltersLoaded] = useState(false);
 
   const [cards, setCards] = useState<CryptidCampCard[]>([]);
@@ -27,6 +28,8 @@ export default function HomeClient() {
 
   const [inputValue, setInputValue] = useState('');
   const debouncedInputValue = useDebounce(inputValue, 400);
+  const [searchEffectQuery, setSearchEffectQuery] = useState('');
+  const debouncedEffectInput = useDebounce(searchEffectQuery, 400);
 
   const [costRange, setCostRange] = useState<[number, number]>([0, 6]);
 
@@ -52,6 +55,7 @@ export default function HomeClient() {
     const taxa = searchParams.get('taxa')?.split(',') || [];
     const weather = searchParams.get('weather')?.split(',') || [];
     const search = searchParams.get('search') || '';
+    const effect = searchParams.get('effect') || '';
     const costMin = Number(searchParams.get('costMin') || '0');
     const costMax = Number(searchParams.get('costMax') || '6');
     setSelectedType(type);
@@ -60,6 +64,7 @@ export default function HomeClient() {
     setSelectedTaxa(taxa);
     setSelectedWeather(weather);
     setInputValue(search);
+    setSearchEffectQuery(effect);
     setCostRange([costMin, costMax]);
     setFiltersLoaded(true);
   }, [searchParams.toString()]);
@@ -75,6 +80,7 @@ export default function HomeClient() {
     if (selectedTaxa.length > 0) params.set('taxa', selectedTaxa.join(','));
     if (selectedWeather.length > 0) params.set('weather', selectedWeather.join(','));
     if (inputValue) params.set('search', inputValue);
+    if (searchEffectQuery) params.set('effect', searchEffectQuery);
     params.set('costMin', String(costRange[0]));
     params.set('costMax', String(costRange[1]));
 
@@ -82,7 +88,7 @@ export default function HomeClient() {
     const newUrl = queryString ? `/?${queryString}` : '/';
 
     setPendingUrlFilters(newUrl);
-  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedTaxa, selectedWeather, inputValue, costRange]);
+  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedTaxa, selectedWeather, inputValue, searchEffectQuery, costRange]);
 
   // Actually update URL
   useEffect(() => {
@@ -101,7 +107,7 @@ export default function HomeClient() {
     if (isPending) return;
 
     fetchCards(true);
-  }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedTaxa, selectedWeather, costRange, debouncedInputValue]);
+  }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedTaxa, selectedWeather, costRange, debouncedInputValue, debouncedEffectInput]);
 
   // Infinite scroll
   useEffect(() => {
@@ -137,6 +143,7 @@ export default function HomeClient() {
     setSelectedTaxa([]);
     setSelectedWeather([]);
     setInputValue('');
+    setSearchEffectQuery('');
     setCostRange([0, 6]);
     setHasMore(true);
     setOffset(0);
@@ -178,6 +185,8 @@ export default function HomeClient() {
     if (selectedCabin) queryParams.set('cabin', selectedCabin);
     if (selectedRarity) queryParams.set('rarity', selectedRarity);
     if (debouncedInputValue) queryParams.set('search', debouncedInputValue);
+    if (debouncedEffectInput) queryParams.set('effect', debouncedEffectInput);
+
     queryParams.set('costMin', String(costRange[0]));
     queryParams.set('costMax', String(costRange[1]));
 
@@ -193,6 +202,7 @@ export default function HomeClient() {
     }
 
     if (reset) {
+      setIsLoaded(false);
       setCards(sorted);
       setCardsFetchedEmpty(sorted.length === 0);
       setOffset(itemsPerPage);
@@ -214,6 +224,7 @@ export default function HomeClient() {
     setIsFetchingCards(false);
     if (spinnerTimeoutRef.current) clearTimeout(spinnerTimeoutRef.current);
     setShowSpinner(false);
+    setIsLoaded(true); 
   };
 
   return (
@@ -250,6 +261,8 @@ export default function HomeClient() {
           onClearFilters={clearFilters}
           selectedWeather={selectedWeather}
           setSelectedWeather={setSelectedWeather}
+          searchEffectQuery={searchEffectQuery}
+          setSearchEffectQuery={setSearchEffectQuery}
         />
       </div>
 
@@ -273,39 +286,43 @@ export default function HomeClient() {
 
         <div className="relative z-20 p-8">
           
-          {showSpinner && !isPending && !isRoutingToCard && initialFetchDone && cards.length === 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2 sm:px-4 auto-rows-fr">
-              {Array.from({ length: 8 }).map((_, idx) => (
-                <SkeletonCard key={idx} />
-              ))}
-            </div>
-          ) : cards.length === 0 ? (
-            <div className="text-center text-gray-600 mt-16 text-lg flex flex-col items-center space-y-4">
-              <Image src="/images/squonk.png" alt="Crying Squonk" width={200} height={200} className="opacity-80" />
-              <p>No cards match your search or filter criteria.</p>
-            </div>
-          ) : (
-            <>
-              <CardGrid
-                cards={cards}
-                currentPage={1}
-                onCardClickStart={() => setIsRoutingToCard(true)}
-                filters={{
-                  type: selectedType,
-                  cabin: selectedCabin,
-                  rarity: selectedRarity,
-                  taxa: selectedTaxa,
-                  weather: selectedWeather,
-                  search: inputValue,
-                  costRange: costRange,
-                }}
-              />
-              <div ref={loaderRef} className="h-16"></div>
-              {isFetchingCards && cards.length > 0 && (
-                <p className="text-center my-4">Loading more cards...</p>
-              )}
-            </>
-          )}
+        {!isLoaded ? (
+  // While loading (skeleton)
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2 sm:px-4 auto-rows-fr">
+    {Array.from({ length: 8 }).map((_, idx) => (
+      <SkeletonCard key={idx} />
+    ))}
+  </div>
+) : cards.length === 0 ? (
+  // After loading, if no matching cards
+  <div className="text-center text-gray-600 mt-16 text-lg flex flex-col items-center space-y-4">
+    <Image src="/images/squonk.png" alt="Crying Squonk" width={200} height={200} className="opacity-80" />
+    <p>No cards match your search or filter criteria.</p>
+  </div>
+) : (
+  // After loading, if cards available
+  <>
+    <CardGrid
+      cards={cards}
+      currentPage={1}
+      onCardClickStart={() => setIsRoutingToCard(true)}
+      filters={{
+        type: selectedType,
+        cabin: selectedCabin,
+        rarity: selectedRarity,
+        taxa: selectedTaxa,
+        weather: selectedWeather,
+        search: inputValue,
+        effect: searchEffectQuery,
+        costRange: costRange,
+      }}
+    />
+    <div ref={loaderRef} className="h-16"></div>
+    {isFetchingCards && cards.length > 0 && (
+      <p className="text-center my-4">Loading more cards...</p>
+    )}
+  </>
+)}
           
         </div>
 

@@ -21,6 +21,7 @@ export default function CardGrid({
     taxa: string[]
     weather: string[]
     search: string
+    effect: string
     costRange: [number, number]
   }
 })
@@ -38,6 +39,7 @@ export default function CardGrid({
     if (filters.taxa.length > 0) queryParams.set('taxa', filters.taxa.join(','));
     if (filters.weather.length > 0) queryParams.set('weather', filters.weather.join(','));
     if (filters.search) queryParams.set('search', filters.search);
+    if (filters.effect) queryParams.set('effect', filters.effect);
     queryParams.set('costMin', String(filters.costRange[0]));
     queryParams.set('costMax', String(filters.costRange[1]));
     queryParams.set('bg', cabinKey);

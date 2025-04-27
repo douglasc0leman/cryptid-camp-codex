@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { Range } from 'react-range';
 
 type Props = {
@@ -19,10 +20,12 @@ type Props = {
   onClearFilters: () => void;
   selectedWeather: string[];
   setSelectedWeather: React.Dispatch<React.SetStateAction<string[]>>;
+  searchEffectQuery: string;
+  setSearchEffectQuery: (value: string) => void;
 };
 
 const weatherConditions = ['Clear Sky', 'Fog', 'Day', 'Night', 'Heat', 'Rain', 'Storm', 'Calm'];
-const typeOptions = ['Cryptid', 'Lantern', 'Trail', 'Supply', 'Memory', 'Trap', 'Environment'];
+const typeOptions = ['Cryptid', 'Trail', 'Supply', 'Memory', 'CZO', 'Trap', 'Environment', 'Lantern', 'Special Lantern'];
 const cabinOptions = ['Gem', 'Obsidian', 'Quartz', 'Fluorite', 'Meteorite', 'Malachite', 'Fulgurite', 'Lapis', 'Corallium'];
 const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Unique'];
 const allTaxa = [
@@ -51,8 +54,10 @@ export default function Sidebar({
   onClearFilters,
   selectedWeather,
   setSelectedWeather,
+  searchEffectQuery,
+  setSearchEffectQuery
 }: Props) {
-  const hasActiveFilters = selectedType || selectedCabin || selectedRarity || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || costRange[0] !== 0 || costRange[1] !== 6;
+  const hasActiveFilters = selectedType || selectedCabin || selectedRarity || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || searchEffectQuery || costRange[0] !== 0 || costRange[1] !== 6;
 
   return (
     <aside className="relative min-h-screen w-full max-w-[16rem]">
@@ -64,32 +69,32 @@ export default function Sidebar({
       <div className="relative z-20 flex flex-col h-full max-h-screen overflow-y-auto">
         {/* Logo */}
         <div className="mb-4 mt-4 px-4 flex justify-center shrink-0">
-          <Image
-            src="/images/cc-codex.png"
-            alt="Cryptid Camp Logo"
-            width={160}
-            height={100}
-            className="object-contain"
-            priority
-          />
+          <Link href="/" className="transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-lg">
+            <Image
+              src="/images/cc-codex.png"
+              alt="Cryptid Camp Logo"
+              width={160}
+              height={100}
+              className="object-contain cursor-pointer"
+              priority
+            />
+          </Link>
         </div>
 
+        {/* Clear All Filters */}
         {hasActiveFilters && (
-          <div className="px-2 mb-4 transition-all duration-300 transform 
-                          opacity-100 translate-y-0">
+          <div className="px-2 mb-4">
             <button
               onClick={onClearFilters}
               className="w-full bg-gray-200 text-gray-800 p-2 rounded shadow hover:bg-gray-300 text-sm font-medium"
             >
-              Clear Filters
+              Clear All Filters
             </button>
           </div>
         )}
 
-
-
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 text-white custom-scrollbar">
-          {/* 🔍 Search by Name */}
+          {/* Search by Name */}
           <div className="relative">
             <label htmlFor="search" className="block text-sm font-medium mb-1">Search by Name</label>
             <input
@@ -103,7 +108,28 @@ export default function Sidebar({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-[34px] pb-[5px] text-gray-500 hover:text-red-500"
+                className="absolute right-2 top-[34px] text-gray-500 hover:text-red-500"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {/* Search by Effect */}
+          <div className="relative">
+            <label htmlFor="effectSearch" className="block text-sm font-medium mb-1">Search by Effect</label>
+            <input
+              id="effectSearch"
+              type="text"
+              placeholder="e.g. Draw 2"
+              value={searchEffectQuery}
+              onChange={(e) => setSearchEffectQuery(e.target.value)}
+              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-200 text-sm text-gray-800"
+            />
+            {searchEffectQuery && (
+              <button
+                onClick={() => setSearchEffectQuery('')}
+                className="absolute right-2 top-[34px] text-gray-500 hover:text-red-500"
               >
                 ×
               </button>
@@ -111,11 +137,12 @@ export default function Sidebar({
           </div>
 
           {/* Type Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Type</label>
-            <div className="relative">
+          <div className="relative">
+            <label htmlFor="type" className="block text-sm font-medium mb-1">Search by Type</label>
+            <div className="relative flex items-center">
               <select
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900"
+                id="type"
+                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
               >
@@ -126,15 +153,30 @@ export default function Sidebar({
                   </option>
                 ))}
               </select>
+
+              {selectedType ? (
+                <button
+                  onClick={() => setSelectedType('')}
+                  className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
+                >
+                  ×
+                </button>
+              ) : (
+                <div className="pointer-events-none absolute right-3 text-gray-500 text-xl">
+                  ↓
+                </div>
+              )}
             </div>
           </div>
 
+
           {/* Cabin Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Cabin</label>
-            <div className="relative">
+          <div className="relative">
+            <label htmlFor="cabin" className="block text-sm font-medium mb-1">Search by Cabin</label>
+            <div className="relative flex items-center">
               <select
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900"
+                id="cabin"
+                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none"
                 value={selectedCabin}
                 onChange={(e) => setSelectedCabin(e.target.value)}
               >
@@ -145,15 +187,29 @@ export default function Sidebar({
                   </option>
                 ))}
               </select>
+
+              {selectedCabin ? (
+                <button
+                  onClick={() => setSelectedCabin('')}
+                  className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
+                >
+                  ×
+                </button>
+              ) : (
+                <div className="pointer-events-none absolute right-3 text-gray-500 text-xl">
+                  ↓
+                </div>
+              )}
             </div>
           </div>
 
           {/* Rarity Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Rarity</label>
-            <div className="relative">
+          <div className="relative">
+            <label htmlFor="rarity" className="block text-sm font-medium mb-1">Search by Rarity</label>
+            <div className="relative flex items-center">
               <select
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900"
+                id="rarity"
+                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none"
                 value={selectedRarity}
                 onChange={(e) => setSelectedRarity(e.target.value)}
               >
@@ -164,10 +220,24 @@ export default function Sidebar({
                   </option>
                 ))}
               </select>
+
+              {selectedRarity ? (
+                <button
+                  onClick={() => setSelectedRarity('')}
+                  className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
+                >
+                  ×
+                </button>
+              ) : (
+                <div className="pointer-events-none absolute right-3 text-gray-500 text-xl">
+                  ↓
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Level Slider */}
+
+          {/* Level Range */}
           <div className="pb-4 mb-4 border-b border-white/20">
             <div className="mb-6 px-2">
               <label className="text-sm font-medium block mb-4">Level Range</label>
@@ -180,7 +250,6 @@ export default function Sidebar({
                 renderTrack={({ props, children }) => (
                   <div {...props} className="h-2 bg-gray-400 rounded-md relative" style={props.style}>
                     {children}
-                    {/* Number labels */}
                     {[0, 1, 2, 3, 4, 5, 6].map((val) => (
                       <div
                         key={val}
@@ -201,8 +270,8 @@ export default function Sidebar({
                   const { key, ...restProps } = props;
                   return (
                     <div
-                      {...restProps}
                       key={key}
+                      {...restProps}
                       className="w-4 h-4 bg-indigo-500 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-white"
                     />
                   );
@@ -211,10 +280,16 @@ export default function Sidebar({
             </div>
           </div>
 
-
           {/* Taxa Filter */}
           <div>
-            <label className="text-sm font-medium block mb-2">Filter by Taxa</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium">Filter by Taxa</label>
+              {selectedTaxa.length > 0 && (
+                <button onClick={() => setSelectedTaxa([])} className="text-xs text-red-400 hover:text-red-600">
+                  Clear
+                </button>
+              )}
+            </div>
             <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded custom-scrollbar">
               {allTaxa.map((taxon) => (
                 <label key={taxon} className="flex items-center text-sm">
@@ -238,34 +313,38 @@ export default function Sidebar({
             </div>
           </div>
 
-  
-{/* Weather Conditions */}
-<div>
-  <label className="text-sm font-medium block mb-2">Filter by Weather</label>
-  <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded custom-scrollbar">
-    {weatherConditions.map((weather) => (
-      <label key={weather} className="flex items-center text-sm">
-        <input
-          type="checkbox"
-          value={weather}
-          checked={selectedWeather.includes(weather)}
-          onChange={(e) => {
-            const value = e.target.value;
-            setSelectedWeather(prev =>
-              prev.includes(value)
-                ? prev.filter(w => w !== value)
-                : [...prev, value]
-            );
-          }}
-          className="mr-2"
-        />
-        {weather}
-      </label>
-    ))}
-  </div>
-</div>
-
-
+          {/* Weather Filter */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium">Filter by Weather</label>
+              {selectedWeather.length > 0 && (
+                <button onClick={() => setSelectedWeather([])} className="text-xs text-red-400 hover:text-red-600">
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded custom-scrollbar">
+              {weatherConditions.map((weather) => (
+                <label key={weather} className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    value={weather}
+                    checked={selectedWeather.includes(weather)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSelectedWeather(prev =>
+                        prev.includes(value)
+                          ? prev.filter(w => w !== value)
+                          : [...prev, value]
+                      );
+                    }}
+                    className="mr-2"
+                  />
+                  {weather}
+                </label>
+              ))}
+            </div>
+          </div>
 
         </div>
       </div>

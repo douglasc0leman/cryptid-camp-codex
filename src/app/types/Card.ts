@@ -18,6 +18,7 @@ export interface CryptidCampCard {
   bounty_text: string | null
   is_environment: boolean
   is_lantern: boolean
+  is_special_lantern: boolean
   is_trail: boolean
   is_cryptid: boolean
   is_supply: boolean

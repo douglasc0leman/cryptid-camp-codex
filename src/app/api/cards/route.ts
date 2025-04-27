@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
   const costMin = url.searchParams.get('costMin');
   const costMax = url.searchParams.get('costMax');
   const search = url.searchParams.get('search');
+  const effect = url.searchParams.get('effect');
 
   const offset = parseInt(url.searchParams.get('offset') || '0', 10);
   const limit = parseInt(url.searchParams.get('limit') || '12', 10);
@@ -38,9 +39,21 @@ export async function GET(req: NextRequest) {
   }
 
   // Type filter
-  const allowedTypes = ['cryptid', 'lantern', 'trail', 'supply', 'memory', 'trap', 'environment'];
-  if (type && allowedTypes.includes(type)) {
-    whereClauses.push(`c.is_${type} = 1`);
+  const typeMap: Record<string, string> = {
+    cryptid: 'is_cryptid',
+    lantern: 'is_lantern',
+    trail: 'is_trail',
+    supply: 'is_supply',
+    memory: 'is_memory',
+    trap: 'is_trap',
+    environment: 'is_environment',
+    czo: 'is_czo',
+    'special lantern': 'is_special_lantern',
+  };
+  
+  const typeParam = type?.toLowerCase();
+  if (typeParam && typeMap[typeParam]) {
+    whereClauses.push(`c.${typeMap[typeParam]} = 1`);
   }
 
   // Rarity filter
@@ -71,7 +84,13 @@ export async function GET(req: NextRequest) {
     values.push(`%${search}%`);
   }
 
-  // Weather filter (THIS IS NEW CORRECT ONE)
+  // Search by effect filter
+  if (effect) {
+    whereClauses.push(`c.text_box LIKE ?`);
+    values.push(`%${effect}%`);
+  }
+
+  // Weather filter
   if (weather.length > 0) {
     weather.forEach((w) => {
       whereClauses.push(`c.text_box IS NOT NULL AND c.text_box LIKE ?`);
