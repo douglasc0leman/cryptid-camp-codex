@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CryptidCampCard } from '@/app/types/Card';
@@ -9,6 +9,7 @@ import { Search } from 'lucide-react';
 import { cabinColorMap } from '../utils/cabinStyles';
 
 export default function CardDetail({ card }: { card: CryptidCampCard }) {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchParams = useSearchParams();
   const bgFromQuery = searchParams.get('bg') ?? '';
@@ -23,6 +24,28 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
     Corallium: '/images/corallium.png', Meteorite: '/images/meteorite.png',
     Fluorite: '/images/fluorite.png', Malachite: '/images/malachite.png', Fulgurite: '/images/fulgurite.png', Gem: '/images/gem.png'
   };
+
+  function parseTextBox(text: string) {
+    const weatherConditions = [
+      'Clear Sky', 'Fog', 'Day', 'Night', 'Heat', 'Rain', 'Storm', 'Calm'
+    ];
+
+    const regex = new RegExp(`(${weatherConditions.join('|')}):`, 'g');
+    const parts = text.split(regex);
+
+    const elements: (string | { type: 'badge'; label: string })[] = [];
+
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (weatherConditions.includes(part)) {
+        elements.push({ type: 'badge', label: part });
+      } else if (part.trim() !== '') {
+        elements.push(part);
+      }
+    }
+
+    return elements;
+  }
 
   const backToCodexQuery = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -65,28 +88,28 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
         {/* Left - Image */}
         <div className={`p-6 flex items-center justify-center border-r border-gray-200 ${isLandscape ? 'md:w-[48%]' : 'md:w-1/3'}`}>
           <button onClick={() => setIsModalOpen(true)} className="focus:outline-none">
-          <div
-  className={`relative group cursor-zoom-in transition-transform duration-200 transform hover:scale-105`}
-  style={{
-    width: isLandscape ? '540px' : '364px',
-    height: isLandscape ? '360px' : '504px',
-  }}
->
-  <div className="relative w-full h-full overflow-hidden">
-    <Image
-      src={card.watermark_url!}
-      alt={card.name}
-      fill
-      unoptimized
-      className={`object-contain rounded ${isLandscape ? 'rotate-[-90deg]' : ''}`}
-    />
-  </div>
-  <div
-    className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-  >
-    <Search className="w-8 h-8 text-white" />
-  </div>
-</div>
+            <div
+              className={`relative group cursor-zoom-in transition-transform duration-200 transform hover:scale-105`}
+              style={{
+                width: isLandscape ? '540px' : '364px',
+                height: isLandscape ? '360px' : '504px',
+              }}
+            >
+              <div className="relative w-full h-full overflow-hidden">
+                <Image
+                  src={card.watermark_url!}
+                  alt={card.name}
+                  fill
+                  unoptimized
+                  className={`object-contain rounded ${isLandscape ? 'rotate-[-90deg]' : ''}`}
+                />
+              </div>
+              <div
+                className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              >
+                <Search className="w-8 h-8 text-white" />
+              </div>
+            </div>
 
           </button>
         </div>
@@ -104,16 +127,18 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
           {/* Header Info */}
           <div className="flex items-start gap-4">
-            {card.cost !== null && (
-              <div className="relative group w-14 h-14 shrink-0">
-                <div className={`w-full h-full rounded-full flex items-center justify-center font-extrabold text-2xl shadow border ${needsDarkText ? 'bg-gray-200 text-gray-800 border-gray-300' : 'bg-white/20 text-white border-white/30'}`}>
-                  {card.cost}
-                </div>
+          {card.cost !== null && (
+              <Link
+                href={`/?costMin=${card.cost}&costMax=${card.cost}`}
+                className={`relative group w-14 h-14 shrink-0 rounded-full flex items-center justify-center font-extrabold text-2xl shadow border transition-transform duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${needsDarkText ? 'bg-gray-200 text-gray-800 border-gray-300' : 'bg-white/20 text-white border-white/30'}`}
+              >
+                {card.cost}
                 <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-max px-3 py-1 rounded bg-black text-white text-xs opacity-0 group-hover:opacity-100">
                   Requires {card.cost} Vision
                 </div>
-              </div>
+              </Link>
             )}
+
             <div className="flex-1">
               <h1 className="text-3xl font-bold leading-tight">
                 {card.name}{' '}
@@ -138,10 +163,17 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           {taxons.length > 0 && (
             <div className="flex flex-wrap gap-3">
               {taxons.map(t => (
-                <span key={t} className={`px-4 py-1.5 rounded-full text-sm font-semibold ${needsDarkText ? 'bg-gray-200 text-gray-800' : 'bg-white/20 text-white border border-white/20'}`}>{t}</span>
+                <Link
+                  key={t}
+                  href={`/?taxa=${encodeURIComponent(t)}`}
+                  className={`inline-block px-3 py-1 mx-1 rounded-full text-sm font-semibold align-middle cursor-pointer transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${needsDarkText ? 'bg-gray-200 text-gray-800' : 'bg-white/20 text-white border border-white/20'}`}
+                >
+                  {t}
+                </Link>
               ))}
             </div>
           )}
+
 
           {/* ATK/DEF + Advantage */}
           {(card.attack !== null || card.defense !== null) && (
@@ -159,9 +191,26 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           {/* Card Text */}
           {card.text_box && (
             <div className="text-[15px] leading-relaxed mt-4 whitespace-pre-wrap">
-              {card.text_box}
+              {parseTextBox(card.text_box).map((part, idx) =>
+                typeof part === 'string' ? (
+                  <span key={idx}>{part}</span>
+                ) : (
+                  <span
+                    key={idx}
+                    onClick={() => {
+                      const query = new URLSearchParams();
+                      query.set('weather', part.label);
+                      router.push(`/?${query.toString()}`);
+                    }}
+                    className={`inline-block px-3 py-1 mx-1 rounded-full text-sm font-semibold align-middle cursor-pointer transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${needsDarkText ? 'bg-gray-200 text-gray-800' : 'bg-white/20 text-white border border-white/20'}`}
+                  >
+                    {part.label}
+                  </span>
+                )
+              )}
             </div>
           )}
+
 
           {/* Illustrator, Set Name, Number */}
           {(card.illustrator || card.set_name || card.set_number) && (
@@ -196,30 +245,30 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
         )}
       </div>
 
-{/* Modal (separate, clean) */}
-{isModalOpen && (
-  <div
-    className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-    onClick={() => setIsModalOpen(false)}
-  >
-    <div
-      onClick={(e) => e.stopPropagation()}
-      className="relative"
-      style={{
-        width: isLandscape ? '720px' : '640px',
-        height: isLandscape ? '540px' : '900px',
-      }}
-    >
-      <Image
-        src={card.watermark_url!}
-        alt={card.name}
-        fill
-        unoptimized
-        className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg]' : ''}`}
-      />
-    </div>
-  </div>
-)}
+      {/* Modal (separate, clean) */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative"
+            style={{
+              width: isLandscape ? '720px' : '640px',
+              height: isLandscape ? '540px' : '900px',
+            }}
+          >
+            <Image
+              src={card.watermark_url!}
+              alt={card.name}
+              fill
+              unoptimized
+              className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg]' : ''}`}
+            />
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -16,8 +16,12 @@ type Props = {
   setSearchQuery: (value: string) => void;
   costRange: [number, number];
   setCostRange: React.Dispatch<React.SetStateAction<[number, number]>>;
+  onClearFilters: () => void;
+  selectedWeather: string[];
+  setSelectedWeather: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
+const weatherConditions = ['Clear Sky', 'Fog', 'Day', 'Night', 'Heat', 'Rain', 'Storm', 'Calm'];
 const typeOptions = ['Cryptid', 'Lantern', 'Trail', 'Supply', 'Memory', 'Trap', 'Environment'];
 const cabinOptions = ['Gem', 'Obsidian', 'Quartz', 'Fluorite', 'Meteorite', 'Malachite', 'Fulgurite', 'Lapis', 'Corallium'];
 const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Unique'];
@@ -44,7 +48,12 @@ export default function Sidebar({
   setSearchQuery,
   costRange,
   setCostRange,
+  onClearFilters,
+  selectedWeather,
+  setSelectedWeather,
 }: Props) {
+  const hasActiveFilters = selectedType || selectedCabin || selectedRarity || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || costRange[0] !== 0 || costRange[1] !== 6;
+
   return (
     <aside className="relative min-h-screen w-full max-w-[16rem]">
       {/* Background */}
@@ -52,7 +61,7 @@ export default function Sidebar({
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" />
 
       {/* Content */}
-      <div className="relative z-20 flex flex-col h-full">
+      <div className="relative z-20 flex flex-col h-full max-h-screen overflow-y-auto">
         {/* Logo */}
         <div className="mb-4 mt-4 px-4 flex justify-center shrink-0">
           <Image
@@ -65,7 +74,21 @@ export default function Sidebar({
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 text-white">
+        {hasActiveFilters && (
+          <div className="px-2 mb-4 transition-all duration-300 transform 
+                          opacity-100 translate-y-0">
+            <button
+              onClick={onClearFilters}
+              className="w-full bg-gray-200 text-gray-800 p-2 rounded shadow hover:bg-gray-300 text-sm font-medium"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
+
+
+
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 text-white custom-scrollbar">
           {/* 🔍 Search by Name */}
           <div className="relative">
             <label htmlFor="search" className="block text-sm font-medium mb-1">Search by Name</label>
@@ -192,7 +215,7 @@ export default function Sidebar({
           {/* Taxa Filter */}
           <div>
             <label className="text-sm font-medium block mb-2">Filter by Taxa</label>
-            <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded">
+            <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded custom-scrollbar">
               {allTaxa.map((taxon) => (
                 <label key={taxon} className="flex items-center text-sm">
                   <input
@@ -214,6 +237,35 @@ export default function Sidebar({
               ))}
             </div>
           </div>
+
+  
+{/* Weather Conditions */}
+<div>
+  <label className="text-sm font-medium block mb-2">Filter by Weather</label>
+  <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded custom-scrollbar">
+    {weatherConditions.map((weather) => (
+      <label key={weather} className="flex items-center text-sm">
+        <input
+          type="checkbox"
+          value={weather}
+          checked={selectedWeather.includes(weather)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setSelectedWeather(prev =>
+              prev.includes(value)
+                ? prev.filter(w => w !== value)
+                : [...prev, value]
+            );
+          }}
+          className="mr-2"
+        />
+        {weather}
+      </label>
+    ))}
+  </div>
+</div>
+
+
 
         </div>
       </div>

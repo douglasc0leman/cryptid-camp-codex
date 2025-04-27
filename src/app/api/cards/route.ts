@@ -1,87 +1,99 @@
-import { db } from '@/lib/db'
-import { NextRequest, NextResponse } from 'next/server'
-import type { RowDataPacket } from 'mysql2'
+import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from 'next/server';
+import type { RowDataPacket } from 'mysql2';
 
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url)
+  const url = new URL(req.url);
 
-  const taxaQuery = url.searchParams.get('taxa')
-  const type = url.searchParams.get('type')
-  const rarity = url.searchParams.get('rarity')
-  const cabin = url.searchParams.get('cabin')
-  const costMin = url.searchParams.get('costMin')
-  const costMax = url.searchParams.get('costMax')
-  const search = url.searchParams.get('search')
+  const taxaQuery = url.searchParams.get('taxa');
+  const weather = url.searchParams.get('weather')?.split(',').filter(Boolean) || [];
+  const type = url.searchParams.get('type');
+  const rarity = url.searchParams.get('rarity');
+  const cabin = url.searchParams.get('cabin');
+  const costMin = url.searchParams.get('costMin');
+  const costMax = url.searchParams.get('costMax');
+  const search = url.searchParams.get('search');
 
-  const offset = parseInt(url.searchParams.get('offset') || '0', 10)
-  const limit = parseInt(url.searchParams.get('limit') || '12', 10)
+  const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+  const limit = parseInt(url.searchParams.get('limit') || '12', 10);
 
-  const taxa = taxaQuery ? taxaQuery.split(',') : []
+  const taxa = taxaQuery ? taxaQuery.split(',') : [];
 
   let query = `
     SELECT 
       c.*, cabin.name AS cabin
     FROM card c
     LEFT JOIN cabin cabin ON c.cabin_id = cabin.id
-  `
+  `;
 
-  const whereClauses: string[] = []
-  const values: (string | number)[] = []
+  const whereClauses: string[] = [];
+  const values: (string | number)[] = [];
 
-  // Taxa
+  // Taxa filter
   if (taxa.length > 0) {
     taxa.forEach((taxon) => {
-      whereClauses.push(`c.taxon LIKE ?`)
-      values.push(`%${taxon}%`)
-    })
+      whereClauses.push(`c.taxon LIKE ?`);
+      values.push(`%${taxon}%`);
+    });
   }
 
-  // Type
-  const allowedTypes = ['cryptid', 'lantern', 'trail', 'supply', 'memory', 'trap', 'environment']
+  // Type filter
+  const allowedTypes = ['cryptid', 'lantern', 'trail', 'supply', 'memory', 'trap', 'environment'];
   if (type && allowedTypes.includes(type)) {
-    whereClauses.push(`c.is_${type} = 1`)
+    whereClauses.push(`c.is_${type} = 1`);
   }
 
-  // Rarity
-  const allowedRarities = ['common', 'uncommon', 'rare', 'unique']
+  // Rarity filter
+  const allowedRarities = ['common', 'uncommon', 'rare', 'unique'];
   if (rarity && allowedRarities.includes(rarity)) {
-    whereClauses.push(`c.is_${rarity} = 1`)
+    whereClauses.push(`c.is_${rarity} = 1`);
   }
 
-  // Cabin
+  // Cabin filter
   if (cabin) {
-    whereClauses.push(`LOWER(cabin.name) = LOWER(?)`)
-    values.push(cabin)
+    whereClauses.push(`LOWER(cabin.name) = LOWER(?)`);
+    values.push(cabin);
   }
 
-  // Cost Range
+  // Cost Range filter
   if (costMin !== null && costMax !== null) {
     if (costMin === '6' && costMax === '6') {
-      // Only exact cost 6, no nulls
-      whereClauses.push(`c.cost = 6`)
+      whereClauses.push(`c.cost = 6`);
     } else {
-      // Normal range, including NULL costs
-      whereClauses.push(`(c.cost IS NULL OR c.cost BETWEEN ? AND ?)`)
-      values.push(Number(costMin), Number(costMax))
+      whereClauses.push(`(c.cost IS NULL OR c.cost BETWEEN ? AND ?)`);
+      values.push(Number(costMin), Number(costMax));
     }
   }
 
-  // Name search
+  // Search by name filter
   if (search) {
-    whereClauses.push(`c.name LIKE ?`)
-    values.push(`%${search}%`)
+    whereClauses.push(`c.name LIKE ?`);
+    values.push(`%${search}%`);
   }
 
+  // Weather filter (THIS IS NEW CORRECT ONE)
+  if (weather.length > 0) {
+    weather.forEach((w) => {
+      whereClauses.push(`c.text_box IS NOT NULL AND c.text_box LIKE ?`);
+      values.push(`%${w}:%`);
+    });
+  }
+
+  // Combine all WHERE clauses
   if (whereClauses.length > 0) {
-    query += ' WHERE ' + whereClauses.join(' AND ')
+    query += ' WHERE ' + whereClauses.join(' AND ');
   }
 
-  query += ' ORDER BY c.name ASC'
+  query += ' ORDER BY c.name ASC';
+  query += ' LIMIT ? OFFSET ?';
 
-  query += ' LIMIT ? OFFSET ?'
-  values.push(limit, offset)
+  values.push(limit, offset);
 
-  const [rows] = await db.query<RowDataPacket[]>(query, values)
+  const [rows] = await db.query<RowDataPacket[]>(query, values);
 
-  return NextResponse.json(rows)
+  console.log('Generated SQL Query:', query);
+  console.log('Values:', values);
+  
+
+  return NextResponse.json(rows);
 }
