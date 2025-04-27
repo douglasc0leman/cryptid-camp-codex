@@ -8,6 +8,12 @@ import { CryptidCampCard } from '@/app/types/Card'
 import { Search } from 'lucide-react'
 import { cabinColorMap } from '../utils/cabinStyles'
 
+const traitKeywords = [
+  'Bloodsucker 1', 'Bloodsucker 2', 'Calm', 'Clear Sky', 'Day', 'Digger',
+  'Flash', 'Flyer', 'Fog', 'Heat', 'Lethal', 'Night', 'Rain',
+  'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
+];
+
 export default function CardDetail({ card }: { card: CryptidCampCard }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const searchParams = useSearchParams()
@@ -52,13 +58,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
     }
 
     return splitTaxa;
-  }, [card.taxon]);
-
-  const traitKeywords = [
-    'Bloodsucker 1', 'Bloodsucker 2', 'Calm', 'Clear Sky', 'Day', 'Digger',
-    'Flash', 'Flyer', 'Fog', 'Heat', 'Lethal', 'Night', 'Rain',
-    'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
-  ];
+  }, [card.taxon, allTaxa]);
 
   const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
 
