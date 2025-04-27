@@ -60,11 +60,6 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
     'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
   ];
 
-  const traitsFromText = useMemo(() => {
-    if (!card.text_box) return [];
-    return traitKeywords.filter(trait => card.text_box!.includes(trait));
-  }, [card.text_box]);
-
   const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
 
   return (
