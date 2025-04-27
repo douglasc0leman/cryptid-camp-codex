@@ -65,30 +65,32 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
         {/* Left - Image */}
         <div className={`p-6 flex items-center justify-center border-r border-gray-200 ${isLandscape ? 'md:w-[48%]' : 'md:w-1/3'}`}>
           <button onClick={() => setIsModalOpen(true)} className="focus:outline-none">
-            <div className="relative group cursor-zoom-in transition-transform duration-200 transform hover:scale-105">
-              {isLandscape ? (
-                <Image
-                  src={card.watermark_url!}
-                  alt={card.name}
-                  width={540}
-                  height={360}
-                  className="object-contain rounded rotate-[-90deg] scale-[1.2]"
-                />
-              ) : (
-                <Image
-                  src={card.watermark_url!}
-                  alt={card.name}
-                  width={364}
-                  height={504}
-                  className="object-contain rounded"
-                />
-              )}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <Search className="w-8 h-8 text-white" />
-              </div>
-            </div>
+          <div
+  className={`relative group cursor-zoom-in transition-transform duration-200 transform hover:scale-105`}
+  style={{
+    width: isLandscape ? '540px' : '364px',
+    height: isLandscape ? '360px' : '504px',
+  }}
+>
+  <div className="relative w-full h-full overflow-hidden">
+    <Image
+      src={card.watermark_url!}
+      alt={card.name}
+      fill
+      unoptimized
+      className={`object-contain rounded ${isLandscape ? 'rotate-[-90deg]' : ''}`}
+    />
+  </div>
+  <div
+    className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+  >
+    <Search className="w-8 h-8 text-white" />
+  </div>
+</div>
+
           </button>
         </div>
+
 
         {/* Right - Details */}
         <div className="md:w-2/3 p-6 flex flex-col gap-4">
@@ -194,30 +196,31 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
         )}
       </div>
 
-      {/* Modal (separate, clean) */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-          <div onClick={e => e.stopPropagation()} className="relative">
-            {isLandscape ? (
-              <Image
-                src={card.watermark_url!}
-                alt={card.name}
-                width={720}
-                height={540}
-                className="rounded shadow-xl object-contain rotate-[-90deg] scale-[1.2]"
-              />
-            ) : (
-              <Image
-                src={card.watermark_url!}
-                alt={card.name}
-                width={640}
-                height={900}
-                className="rounded shadow-xl object-contain"
-              />
-            )}
-          </div>
-        </div>
-      )}
+{/* Modal (separate, clean) */}
+{isModalOpen && (
+  <div
+    className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+    onClick={() => setIsModalOpen(false)}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="relative"
+      style={{
+        width: isLandscape ? '720px' : '640px',
+        height: isLandscape ? '540px' : '900px',
+      }}
+    >
+      <Image
+        src={card.watermark_url!}
+        alt={card.name}
+        fill
+        unoptimized
+        className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg]' : ''}`}
+      />
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
