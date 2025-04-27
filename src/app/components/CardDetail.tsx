@@ -8,12 +8,6 @@ import { CryptidCampCard } from '@/app/types/Card'
 import { Search } from 'lucide-react'
 import { cabinColorMap } from '../utils/cabinStyles'
 
-const traitKeywords = [
-  'Bloodsucker 1', 'Bloodsucker 2', 'Calm', 'Clear Sky', 'Day', 'Digger',
-  'Flash', 'Flyer', 'Fog', 'Heat', 'Lethal', 'Night', 'Rain',
-  'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
-];
-
 export default function CardDetail({ card }: { card: CryptidCampCard }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const searchParams = useSearchParams()
@@ -38,27 +32,27 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
   const badgeSrc = badgeMap[card.cabin!]
 
-  const allTaxa = [
-    'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
-    'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
-    'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
-    'Impersator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Magus',
-    'Mecha', 'Mer', 'Observer', 'Phantom', 'Piscis', 'Prophet', 'Revenant',
-    'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
-    'Suid', 'Ursa', 'Vermis', 'Yokai'
-  ];
-
   const taxons = useMemo(() => {
     if (!card.taxon) return [];
-
+  
+    const allTaxa = [
+      'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
+      'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
+      'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
+      'Impersator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Magus',
+      'Mecha', 'Mer', 'Observer', 'Phantom', 'Piscis', 'Prophet', 'Revenant',
+      'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
+      'Suid', 'Ursa', 'Vermis', 'Yokai'
+    ];
+  
     const splitTaxa = card.taxon.split(' ').filter(t => t.trim() !== '');
-
+  
     if (splitTaxa.length === 2 && splitTaxa[0] === '{All' && splitTaxa[1] === 'Taxa}') {
       return allTaxa;
     }
-
+  
     return splitTaxa;
-  }, [card.taxon, allTaxa]);
+  }, [card.taxon]);
 
   const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
 
