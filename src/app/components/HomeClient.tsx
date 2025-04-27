@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef, useTransition } from 'react';
-import { Menu, X } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { X } from 'lucide-react';
 import CardGrid from '../components/CardGrid';
 import Sidebar from '../components/Sidebar';
 import type { CryptidCampCard } from '../types/Card';
@@ -24,9 +25,11 @@ export default function HomeClient() {
   const [selectedCabin, setSelectedCabin] = useState('');
   const [selectedRarity, setSelectedRarity] = useState('');
   const [selectedTaxa, setSelectedTaxa] = useState<string[]>([]);
+
   const [inputValue, setInputValue] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [costRange, setCostRange] = useState<[number, number]>([0, 5]);
+  const debouncedInputValue = useDebounce(inputValue, 400);
+
+  const [costRange, setCostRange] = useState<[number, number]>([0, 6]);
 
   const itemsPerPage = 12;
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -40,14 +43,13 @@ export default function HomeClient() {
     const taxa = searchParams.get('taxa')?.split(',') || [];
     const search = searchParams.get('search') || '';
     const costMin = Number(searchParams.get('costMin') || '0');
-    const costMax = Number(searchParams.get('costMax') || '5');
+    const costMax = Number(searchParams.get('costMax') || '6');
 
     setSelectedType(type);
     setSelectedCabin(cabin);
     setSelectedRarity(rarity);
     setSelectedTaxa(taxa);
     setInputValue(search);
-    setSearchQuery(search);
     setCostRange([costMin, costMax]);
     setFiltersLoaded(true);
   }, [searchParams.toString()]);
@@ -56,7 +58,7 @@ export default function HomeClient() {
     if (filtersLoaded) {
       fetchCards(true);
     }
-  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedTaxa, costRange, searchQuery]);
+  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedTaxa, costRange, debouncedInputValue]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -67,7 +69,6 @@ export default function HomeClient() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Infinite scroll
   useEffect(() => {
     if (!loaderRef.current) return;
     const observer = new IntersectionObserver((entries) => {
@@ -90,16 +91,20 @@ export default function HomeClient() {
     if (selectedType) queryParams.set('type', selectedType);
     if (selectedCabin) queryParams.set('cabin', selectedCabin);
     if (selectedRarity) queryParams.set('rarity', selectedRarity);
+    if (debouncedInputValue) queryParams.set('search', debouncedInputValue);
     queryParams.set('costMin', String(costRange[0]));
     queryParams.set('costMax', String(costRange[1]));
-    if (searchQuery) queryParams.set('search', searchQuery);
 
     const res = await fetch(`/api/cards?${queryParams.toString()}`);
     const data = await res.json();
 
-    const sorted = data.sort((a: CryptidCampCard, b: CryptidCampCard) =>
+    let sorted = data.sort((a: CryptidCampCard, b: CryptidCampCard) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     );
+
+    if (costRange[0] === 6 && costRange[1] === 6) {
+      sorted = sorted.filter((card: CryptidCampCard) => card.cost === 6);
+    }
 
     if (reset) {
       setCards(sorted);
@@ -120,22 +125,15 @@ export default function HomeClient() {
     setLoading(false);
   };
 
-  const applyFilters = () => {
-    const params = new URLSearchParams();
-    if (selectedType) params.set('type', selectedType);
-    if (selectedCabin) params.set('cabin', selectedCabin);
-    if (selectedRarity) params.set('rarity', selectedRarity);
-    if (selectedTaxa.length > 0) params.set('taxa', selectedTaxa.join(','));
-    if (searchQuery) params.set('search', searchQuery);
-    params.set('costMin', String(costRange[0]));
-    params.set('costMax', String(costRange[1]));
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
-    startTransition(() => {
-      router.push(`/?${params.toString()}`);
-    });
-
-    setIsSidebarOpen(false);
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const clearFilters = () => {
     setSelectedType('');
@@ -143,8 +141,7 @@ export default function HomeClient() {
     setSelectedRarity('');
     setSelectedTaxa([]);
     setInputValue('');
-    setSearchQuery('');
-    setCostRange([0, 5]);
+    setCostRange([0, 6]);
     setHasMore(true);
     setOffset(0);
 
@@ -152,22 +149,6 @@ export default function HomeClient() {
       router.push('/');
     });
   };
-
-  useEffect(() => {
-    if (filtersLoaded && !isMobile && searchParams.toString()) {
-      applyFilters();
-    }
-  }, [filtersLoaded, isMobile]);
-
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300); // Show button if scrolled down 300px
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);  
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-gray-800 relative">
@@ -180,9 +161,8 @@ export default function HomeClient() {
 
       {/* Sidebar */}
       <div
-        className={`fixed md:static top-0 left-0 z-40 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:static top-0 left-0 z-40 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         <div className="flex md:hidden justify-between items-center p-4 border-b bg-white">
           <h2 className="text-lg font-bold">Filters</h2>
@@ -191,7 +171,6 @@ export default function HomeClient() {
           </button>
         </div>
         <Sidebar
-          key={`${selectedType}-${selectedCabin}-${selectedRarity}-${selectedTaxa.join(',')}-${costRange.join(',')}-${inputValue}`}
           selectedType={selectedType}
           setSelectedType={setSelectedType}
           selectedCabin={selectedCabin}
@@ -221,16 +200,17 @@ export default function HomeClient() {
       <header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-30">
         <h1 className="text-xl font-bold">Cryptid Camp Codex</h1>
         <button onClick={() => setIsSidebarOpen(true)}>
-          <Menu className="w-6 h-6" />
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </button>
       </header>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="flex-1 relative overflow-y-auto pt-16">
-        <div
-          className="absolute inset-0 bg-cover bg-center z-0"
-          style={{ backgroundImage: "url('/images/cardgrid-bg.png')" }}
-        />
+
+        {/* Background */}
+        <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/cardgrid-bg.png')" }} />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-10" />
 
         <div className="relative z-20 p-8">
@@ -240,13 +220,7 @@ export default function HomeClient() {
             </div>
           ) : cards.length === 0 ? (
             <div className="text-center text-gray-600 mt-16 text-lg flex flex-col items-center space-y-4">
-              <Image
-                src="/images/squonk.png"
-                alt="Crying Squonk"
-                width={200}
-                height={200}
-                className="opacity-80"
-              />
+              <Image src="/images/squonk.png" alt="Crying Squonk" width={200} height={200} className="opacity-80" />
               <p>No cards match your search or filter criteria.</p>
             </div>
           ) : (
@@ -270,12 +244,15 @@ export default function HomeClient() {
           )}
         </div>
 
+        {/* Loading Overlay */}
         {(isPending || isRoutingToCard) && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
           </div>
         )}
       </main>
+
+      {/* Scroll to Top */}
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

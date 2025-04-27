@@ -55,9 +55,15 @@ export async function GET(req: NextRequest) {
   }
 
   // Cost Range
-  if (!(costMin === '0' && costMax === '5')) {
-    whereClauses.push(`(c.cost IS NULL OR c.cost BETWEEN ? AND ?)`)
-    values.push(Number(costMin), Number(costMax))
+  if (costMin !== null && costMax !== null) {
+    if (costMin === '6' && costMax === '6') {
+      // Only exact cost 6, no nulls
+      whereClauses.push(`c.cost = 6`)
+    } else {
+      // Normal range, including NULL costs
+      whereClauses.push(`(c.cost IS NULL OR c.cost BETWEEN ? AND ?)`)
+      values.push(Number(costMin), Number(costMax))
+    }
   }
 
   // Name search
