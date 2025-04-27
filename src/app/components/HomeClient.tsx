@@ -18,7 +18,6 @@ export default function HomeClient() {
   const [cards, setCards] = useState<CryptidCampCard[]>([]);
   const [isRoutingToCard, setIsRoutingToCard] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   const [selectedType, setSelectedType] = useState('');
   const [selectedCabin, setSelectedCabin] = useState('');
@@ -103,16 +102,6 @@ export default function HomeClient() {
 
     fetchCards(true);
   }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedTaxa, selectedWeather, costRange, debouncedInputValue]);
-
-  // Resize handler
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Infinite scroll
   useEffect(() => {
