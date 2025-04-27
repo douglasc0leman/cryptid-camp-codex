@@ -31,6 +31,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
   }, [searchParams])
 
   const badgeSrc = badgeMap[card.cabin!]
+
   const allTaxa = [
     'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
     'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
@@ -40,19 +41,29 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
     'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
     'Suid', 'Ursa', 'Vermis', 'Yokai'
   ];
-  
+
   const taxons = useMemo(() => {
     if (!card.taxon) return [];
-  
+
     const splitTaxa = card.taxon.split(' ').filter(t => t.trim() !== '');
-  
-    // Special case: if it's exactly "{All" and "Taxa}"
+
     if (splitTaxa.length === 2 && splitTaxa[0] === '{All' && splitTaxa[1] === 'Taxa}') {
       return allTaxa;
     }
-  
+
     return splitTaxa;
   }, [card.taxon]);
+
+  const traitKeywords = [
+    'Bloodsucker 1', 'Bloodsucker 2', 'Calm', 'Clear Sky', 'Day', 'Digger',
+    'Flash', 'Flyer', 'Fog', 'Heat', 'Lethal', 'Night', 'Rain',
+    'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
+  ];
+
+  const traitsFromText = useMemo(() => {
+    if (!card.text_box) return [];
+    return traitKeywords.filter(trait => card.text_box!.includes(trait));
+  }, [card.text_box]);
 
   const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
 
@@ -136,17 +147,45 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
             </div>
           )}
 
-
           {/* Card Text, Set Info */}
           <div>
             {card.text_box && (
               <div className="text-[15px] leading-relaxed">
-                <h2 className="text-base font-semibold mt-4">Card Text</h2>
-                <p className="mt-1 whitespace-pre-wrap">{card.text_box}</p>
+
+                {/* Updated Card Text with badges in-line */}
+                <p className="mt-1 whitespace-pre-wrap">
+                  {(() => {
+                    const traitKeywords = [
+                      'Bloodsucker 1', 'Bloodsucker 2', 'Calm', 'Clear Sky', 'Day', 'Digger',
+                      'Flash', 'Flyer', 'Fog', 'Heat', 'Lethal', 'Night', 'Rain',
+                      'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
+                    ];
+
+                    // Split the text into parts where a trait + ':' appears
+                    const parts = card.text_box.split(new RegExp(`(${traitKeywords.join('|')}):`, 'g'));
+
+                    return parts.map((part, index) => {
+                      const trimmedPart = part.trim();
+                      if (traitKeywords.includes(trimmedPart)) {
+                        // This part is a recognized trait
+                        return (
+                          <span key={index} className={`inline-flex items-center gap-1`}>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${needsDarkText ? 'bg-blue-200 text-blue-800' : 'bg-white/20 text-white border border-white/20'}`}>
+                              {trimmedPart}
+                            </span>{': '}
+                          </span>
+                        );
+                      } else {
+                        // Just regular text
+                        return <span key={index}>{part}</span>;
+                      }
+                    });
+                  })()}
+                </p>
               </div>
             )}
             {(card.illustrator || card.set_name || card.set_number) && (
-              <div className="mt-4 text-sm font-medium space-y-1">
+              <div className="mt-8 text-sm font-medium space-y-1">
                 {card.illustrator && <div>Illustrator: {card.illustrator}</div>}
                 {card.set_name && <div>Set: {card.set_name}</div>}
                 {card.set_number && <div>Card #: {card.set_number}</div>}
@@ -154,9 +193,10 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
             )}
           </div>
 
+
           {/* Flavor Text */}
           {card.flavor_text && (
-            <div className={`italic mt-10 border-l-4 pl-4 ${needsDarkText ? 'text-black/70 border-black/20' : 'text-white/70 border-white/40'}`}>“{card.flavor_text}”</div>
+            <div className={`italic mt-8 border-l-4 pl-4 ${needsDarkText ? 'text-black/70 border-black/20' : 'text-white/70 border-white/40'}`}>“{card.flavor_text}”</div>
           )}
 
           {/* Back to Codex */}
@@ -182,7 +222,64 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           <div
             className={`relative ${isLandscape ? 'w-[540px] h-[360px] md:w-[720px] md:h-[540px]' : 'w-[320px] h-[450px] md:w-[640px] md:h-[900px]'}`}
             onClick={e => e.stopPropagation()}>
-            <Image src={card.watermark_url!} alt={card.name} fill className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg] scale-[1.2]' : ''}`} />
+            <Image src={card.watermark_url!} alt={card.name} fill className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg] scale-[1.2]' : ''}`} />{/* Card Text, Set Info */}
+<div>
+  {card.text_box && (
+    <div className="leading-relaxed md:text-[17px] text-[15px]">
+      <h2 className="text-base font-semibold mt-4">Card Text</h2>
+      <p className="mt-2 whitespace-pre-wrap">
+        {(() => {
+          const traitKeywords = [
+            'Bloodsucker 1', 'Bloodsucker 2', 'Calm', 'Clear Sky', 'Day', 'Digger',
+            'Flash', 'Flyer', 'Fog', 'Heat', 'Lethal', 'Night', 'Rain',
+            'Raid 1', 'Rush', 'Storm', 'Swimmer', 'Swift'
+          ];
+
+          const parts = card.text_box.split(new RegExp(`(${traitKeywords.join('|')}):`, 'g'));
+
+          return parts.map((part, index) => {
+            const trimmedPart = part.trim();
+            if (traitKeywords.includes(trimmedPart)) {
+              return (
+                <span key={index} className="inline-flex items-center gap-1">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${needsDarkText ? 'bg-blue-200 text-blue-800' : 'bg-white/20 text-white border border-white/20'}`}>
+                    {trimmedPart}
+                  </span>
+                  {': '}
+                </span>
+              );
+            } else {
+              return <span key={index}>{part}</span>;
+            }
+          });
+        })()}
+      </p>
+    </div>
+  )}
+  
+  {(card.illustrator || card.set_name || card.set_number) && (
+    <div className="mt-8 md:text-[17px] text-[15px] font-medium space-y-1">
+      {card.illustrator && <div>Illustrator: {card.illustrator}</div>}
+      {card.set_name && <div>Set: {card.set_name}</div>}
+      {card.set_number && <div>Card #: {card.set_number}</div>}
+    </div>
+  )}
+</div>
+
+{/* Flavor Text */}
+{card.flavor_text && (
+  <div className={`italic mt-10 border-l-4 pl-4 ${needsDarkText ? 'text-black/70 border-black/20' : 'text-white/70 border-white/40'} md:text-[17px] text-[15px]`}>
+    “{card.flavor_text}”
+  </div>
+)}
+
+{/* Back to Codex */}
+<div className="pt-10 pb-6 flex justify-center">
+  <Link href={backToCodexQuery ? `/?${backToCodexQuery}` : '/'} className={`px-6 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+    ← Back to Codex
+  </Link>
+</div>
+
           </div>
         </div>
       )}
