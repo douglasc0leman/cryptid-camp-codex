@@ -13,7 +13,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
   const searchParams = useSearchParams()
   const bgFromQuery = searchParams.get('bg') ?? ''
   const { bg, text } = cabinColorMap[bgFromQuery] ?? { bg: '#ffffff', text: 'text-gray-800' }
-  
+
   const textClass = text
   const cabin = card.cabin?.toLowerCase() || ''
   const needsDarkText = ['#eaf4ff', '#edf2f7', '#ffffff'].includes(bg.toLowerCase()) || ['meteorite', 'corallium', 'gem', 'fulgurite', 'quartz'].includes(cabin)
@@ -31,7 +31,29 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
   }, [searchParams])
 
   const badgeSrc = badgeMap[card.cabin!]
-  const taxons = card.taxon?.split(' ') ?? []
+  const allTaxa = [
+    'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
+    'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
+    'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
+    'Impersator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Magus',
+    'Mecha', 'Mer', 'Observer', 'Phantom', 'Piscis', 'Prophet', 'Revenant',
+    'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
+    'Suid', 'Ursa', 'Vermis', 'Yokai'
+  ];
+  
+  const taxons = useMemo(() => {
+    if (!card.taxon) return [];
+  
+    const splitTaxa = card.taxon.split(' ').filter(t => t.trim() !== '');
+  
+    // Special case: if it's exactly "{All" and "Taxa}"
+    if (splitTaxa.length === 2 && splitTaxa[0] === '{All' && splitTaxa[1] === 'Taxa}') {
+      return allTaxa;
+    }
+  
+    return splitTaxa;
+  }, [card.taxon]);
+
   const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
 
   return (
@@ -99,20 +121,20 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
             </div>
           )}
 
-{/* ATK/DEF + Advantage */}
-{(card.attack !== null || card.defense !== null) && (
-  <div className="flex flex-col items-center justify-center w-full mt-6">
-    <div className="inline-flex overflow-hidden rounded-full shadow text-white text-2xl font-bold">
-      <div className="bg-red-200 text-red-900 px-6 py-3">{card.attack ?? 0} ATK</div>
-      <div className="bg-blue-200 text-blue-900 px-6 py-3 border-l border-white/40">{card.defense ?? 0} DEF</div>
-    </div>
-    {card.advantage && (
-      <div className="text-base font-semibold italic mt-3 text-center">
-        {card.advantage}
-      </div>
-    )}
-  </div>
-)}
+          {/* ATK/DEF + Advantage */}
+          {(card.attack !== null || card.defense !== null) && (
+            <div className="flex flex-col items-center justify-center w-full mt-6">
+              <div className="inline-flex overflow-hidden rounded-full shadow text-white text-2xl font-bold">
+                <div className="bg-red-200 text-red-900 px-6 py-3">{card.attack ?? 0} ATK</div>
+                <div className="bg-blue-200 text-blue-900 px-6 py-3 border-l border-white/40">{card.defense ?? 0} DEF</div>
+              </div>
+              {card.advantage && (
+                <div className="text-base font-semibold italic mt-3 text-center">
+                  {card.advantage}
+                </div>
+              )}
+            </div>
+          )}
 
 
           {/* Card Text, Set Info */}

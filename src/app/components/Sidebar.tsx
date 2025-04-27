@@ -12,8 +12,8 @@ type Props = {
   setSelectedRarity: (value: string) => void;
   selectedTaxa: string[];
   setSelectedTaxa: React.Dispatch<React.SetStateAction<string[]>>;
-  searchQuery: string; // <-- inputValue passed
-  setSearchQuery: (value: string) => void; // <-- setInputValue passed
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
   costRange: [number, number];
   setCostRange: React.Dispatch<React.SetStateAction<[number, number]>>;
 };
@@ -21,6 +21,15 @@ type Props = {
 const typeOptions = ['Cryptid', 'Lantern', 'Trail', 'Supply', 'Memory', 'Trap', 'Environment'];
 const cabinOptions = ['Gem', 'Obsidian', 'Quartz', 'Fluorite', 'Meteorite', 'Malachite', 'Fulgurite', 'Lapis', 'Corallium'];
 const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Unique'];
+const allTaxa = [
+  'All Taxa', 'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
+  'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
+  'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
+  'Impersator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Magus',
+  'Mecha', 'Mer', 'Observer', 'Phantom', 'Piscis', 'Prophet', 'Revenant',
+  'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
+  'Suid', 'Ursa', 'Vermis', 'Yokai'
+];
 
 export default function Sidebar({
   selectedType,
@@ -38,12 +47,8 @@ export default function Sidebar({
 }: Props) {
   return (
     <aside className="relative min-h-screen w-full max-w-[16rem]">
-      {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center z-0"
-        style={{ backgroundImage: "url('/images/sidebar-bg.png')" }}
-      />
-      {/* Overlay */}
+      {/* Background */}
+      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/sidebar-bg.png')" }} />
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" />
 
       {/* Content */}
@@ -60,13 +65,10 @@ export default function Sidebar({
           />
         </div>
 
-        {/* Filters */}
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 text-white">
           {/* 🔍 Search by Name */}
           <div className="relative">
-            <label htmlFor="search" className="block text-sm font-medium mb-1">
-              Search by Name
-            </label>
+            <label htmlFor="search" className="block text-sm font-medium mb-1">Search by Name</label>
             <input
               id="search"
               type="text"
@@ -90,30 +92,17 @@ export default function Sidebar({
             <label className="block text-sm font-medium mb-1">Type</label>
             <div className="relative">
               <select
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none cursor-pointer"
+                className="w-full border p-2 pr-10 rounded bg-white text-gray-900"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
               >
                 <option value="">All</option>
                 {typeOptions.map((type) => (
-                  <option key={type.toLowerCase()} value={type.toLowerCase()}>
+                  <option key={type} value={type.toLowerCase()}>
                     {type}
                   </option>
                 ))}
               </select>
-              {selectedType ? (
-                <button
-                  type="button"
-                  onClick={() => setSelectedType('')}
-                  className="absolute inset-y-0 right-2 flex items-center text-gray-700 text-base hover:text-red-500"
-                >
-                  ×
-                </button>
-              ) : (
-                <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-700 text-sm">
-                  ↓
-                </div>
-              )}
             </div>
           </div>
 
@@ -122,30 +111,17 @@ export default function Sidebar({
             <label className="block text-sm font-medium mb-1">Cabin</label>
             <div className="relative">
               <select
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none cursor-pointer"
+                className="w-full border p-2 pr-10 rounded bg-white text-gray-900"
                 value={selectedCabin}
                 onChange={(e) => setSelectedCabin(e.target.value)}
               >
                 <option value="">All</option>
                 {cabinOptions.map((cabin) => (
-                  <option key={cabin.toLowerCase()} value={cabin.toLowerCase()}>
+                  <option key={cabin} value={cabin.toLowerCase()}>
                     {cabin}
                   </option>
                 ))}
               </select>
-              {selectedCabin ? (
-                <button
-                  type="button"
-                  onClick={() => setSelectedCabin('')}
-                  className="absolute inset-y-0 right-2 flex items-center text-gray-700 text-base hover:text-red-500"
-                >
-                  ×
-                </button>
-              ) : (
-                <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-700 text-sm">
-                  ↓
-                </div>
-              )}
             </div>
           </div>
 
@@ -154,35 +130,22 @@ export default function Sidebar({
             <label className="block text-sm font-medium mb-1">Rarity</label>
             <div className="relative">
               <select
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none cursor-pointer"
+                className="w-full border p-2 pr-10 rounded bg-white text-gray-900"
                 value={selectedRarity}
                 onChange={(e) => setSelectedRarity(e.target.value)}
               >
                 <option value="">All</option>
                 {rarityOptions.map((rarity) => (
-                  <option key={rarity.toLowerCase()} value={rarity.toLowerCase()}>
+                  <option key={rarity} value={rarity.toLowerCase()}>
                     {rarity}
                   </option>
                 ))}
               </select>
-              {selectedRarity ? (
-                <button
-                  type="button"
-                  onClick={() => setSelectedRarity('')}
-                  className="absolute inset-y-0 right-2 flex items-center text-gray-700 text-base hover:text-red-500"
-                >
-                  ×
-                </button>
-              ) : (
-                <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-700 text-sm">
-                  ↓
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Level Range Slider */}
-          <div className="text-white pb-4 mb-4 border-b border-white/20">
+          {/* Level Slider */}
+          <div className="pb-4 mb-4 border-b border-white/20">
             <div className="mb-6 px-2">
               <label className="text-sm font-medium block mb-4">Level Range</label>
               <Range
@@ -192,33 +155,66 @@ export default function Sidebar({
                 values={costRange}
                 onChange={(values) => setCostRange(values as [number, number])}
                 renderTrack={({ props, children }) => (
-                  <div
-                    {...props}
-                    className="h-2 bg-gray-400 rounded-md relative"
-                    style={props.style}
-                  >
+                  <div {...props} className="h-2 bg-gray-400 rounded-md relative" style={props.style}>
                     {children}
-                    <div className="absolute top-4 left-0 right-0 flex justify-between text-xs text-white font-mono px-1">
-                      {[0, 1, 2, 3, 4, 5, 6].map((val) => (
-                        <span key={val}>{val === 6 ? '6+' : val}</span>
-                      ))}
-                    </div>
+                    {/* Number labels */}
+                    {[0, 1, 2, 3, 4, 5, 6].map((val) => (
+                      <div
+                        key={val}
+                        className="absolute text-xs text-white font-mono"
+                        style={{
+                          top: '12px',
+                          left: `${(val / 6) * 100}%`,
+                          transform: 'translateX(-50%)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {val === 6 ? '6+' : val}
+                      </div>
+                    ))}
                   </div>
                 )}
                 renderThumb={({ props }) => {
-                  const { key, ...rest } = props;
+                  const { key, ...restProps } = props;
                   return (
                     <div
+                      {...restProps}
                       key={key}
-                      {...rest}
                       className="w-4 h-4 bg-indigo-500 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-white"
-                      style={props.style}
                     />
                   );
                 }}
               />
             </div>
           </div>
+
+
+          {/* Taxa Filter */}
+          <div>
+            <label className="text-sm font-medium block mb-2">Filter by Taxa</label>
+            <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded">
+              {allTaxa.map((taxon) => (
+                <label key={taxon} className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    value={taxon}
+                    checked={selectedTaxa.includes(taxon)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSelectedTaxa(prev =>
+                        prev.includes(value)
+                          ? prev.filter(t => t !== value)
+                          : [...prev, value]
+                      );
+                    }}
+                    className="mr-2"
+                  />
+                  {taxon}
+                </label>
+              ))}
+            </div>
+          </div>
+
         </div>
       </div>
     </aside>
