@@ -39,13 +39,10 @@ export default function HomeClient() {
   const [hasMore, setHasMore] = useState(true);
 
   const [isFetchingCards, setIsFetchingCards] = useState(false);
-  const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [pendingUrlFilters, setPendingUrlFilters] = useState('');
   const debouncedUrlFilters = useDebounce(pendingUrlFilters, 400);
 
   const spinnerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [showSpinner, setShowSpinner] = useState(false);
-  const [cardsFetchedEmpty, setCardsFetchedEmpty] = useState(false);
 
   // Pull filters from URL
   useEffect(() => {
@@ -67,7 +64,7 @@ export default function HomeClient() {
     setSearchEffectQuery(effect);
     setCostRange([costMin, costMax]);
     setFiltersLoaded(true);
-  }, [searchParams.toString()]);
+  }, [searchParams]);
 
   // Update URL when filters change
   useEffect(() => {
@@ -166,15 +163,8 @@ export default function HomeClient() {
   // Main fetch
   const fetchCards = async (reset = false) => {
     setIsFetchingCards(true);
-    setShowSpinner(false);
 
     if (spinnerTimeoutRef.current) clearTimeout(spinnerTimeoutRef.current);
-
-    spinnerTimeoutRef.current = setTimeout(() => {
-      if (!isPending && cardsFetchedEmpty && !isFetchingCards) {
-        setShowSpinner(true);
-      }
-    }, 300);
 
     const queryParams = new URLSearchParams();
     queryParams.set('offset', reset ? '0' : String(offset));
@@ -204,17 +194,14 @@ export default function HomeClient() {
     if (reset) {
       setIsLoaded(false);
       setCards(sorted);
-      setCardsFetchedEmpty(sorted.length === 0);
       setOffset(itemsPerPage);
       setHasMore(sorted.length >= itemsPerPage);
-      setInitialFetchDone(true);
     } else {
       setCards((prev) => {
         const existingIds = new Set(prev.map((c) => c.id));
         const newCards = sorted.filter((c: CryptidCampCard) => !existingIds.has(c.id));
         return [...prev, ...newCards];
       });
-      setCardsFetchedEmpty(sorted.length === 0);
       setOffset((prev) => prev + itemsPerPage);
       if (sorted.length < itemsPerPage) {
         setHasMore(false);
@@ -223,7 +210,6 @@ export default function HomeClient() {
 
     setIsFetchingCards(false);
     if (spinnerTimeoutRef.current) clearTimeout(spinnerTimeoutRef.current);
-    setShowSpinner(false);
     setIsLoaded(true); 
   };
 

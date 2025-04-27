@@ -110,9 +110,5 @@ export async function GET(req: NextRequest) {
 
   const [rows] = await db.query<RowDataPacket[]>(query, values);
 
-  console.log('Generated SQL Query:', query);
-  console.log('Values:', values);
-  
-
   return NextResponse.json(rows);
 }
