@@ -127,7 +127,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
           {/* Header Info */}
           <div className="flex items-start gap-4">
-          {card.cost !== null && (
+            {card.cost !== null && (
               <Link
                 href={`/?costMin=${card.cost}&costMax=${card.cost}`}
                 className={`relative group w-14 h-14 shrink-0 rounded-full flex items-center justify-center font-extrabold text-2xl shadow border transition-transform duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${needsDarkText ? 'bg-gray-200 text-gray-800 border-gray-300' : 'bg-white/20 text-white border-white/30'}`}
@@ -253,23 +253,24 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative"
-            style={{
-              width: isLandscape ? '720px' : '640px',
-              height: isLandscape ? '540px' : '900px',
-            }}
+            className="relative max-w-full max-h-full"
           >
-            <Image
-              src={card.watermark_url!}
-              alt={card.name}
-              fill
-              unoptimized
-              className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg]' : ''}`}
-            />
+            <div className="relative w-full h-full" style={{
+              width: isLandscape ? 'min(720px, 90vw)' : 'min(640px, 90vw)',
+              height: isLandscape ? 'min(540px, 70vh)' : 'min(900px, 70vh)',
+            }}>
+              <Image
+                src={card.watermark_url!}
+                alt={card.name}
+                fill
+                unoptimized
+                className={`rounded shadow-xl object-contain ${isLandscape ? 'rotate-[-90deg]' : ''}`}
+              />
+            </div>
           </div>
         </div>
       )}
-
+      
     </div>
   );
 }
