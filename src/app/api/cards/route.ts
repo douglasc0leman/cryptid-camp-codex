@@ -4,11 +4,13 @@ import type { RowDataPacket } from 'mysql2';
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-
   const taxaQuery = url.searchParams.get('taxa');
+  const taxa = taxaQuery ? taxaQuery.split(',') : [];
   const weather = url.searchParams.get('weather')?.split(',').filter(Boolean) || [];
+  const traits = url.searchParams.get('traits')?.split(',').filter(Boolean) || [];
   const type = url.searchParams.get('type');
   const rarity = url.searchParams.get('rarity');
+  const set = url.searchParams.get('set');
   const cabin = url.searchParams.get('cabin');
   const costMin = url.searchParams.get('costMin');
   const costMax = url.searchParams.get('costMax');
@@ -17,8 +19,6 @@ export async function GET(req: NextRequest) {
 
   const offset = parseInt(url.searchParams.get('offset') || '0', 10);
   const limit = parseInt(url.searchParams.get('limit') || '12', 10);
-
-  const taxa = taxaQuery ? taxaQuery.split(',') : [];
 
   let query = `
     SELECT 
@@ -62,6 +62,11 @@ export async function GET(req: NextRequest) {
     whereClauses.push(`c.is_${rarity} = 1`);
   }
 
+  if (set) {
+    whereClauses.push(`c.set_name = ?`);
+    values.push(set);
+  }
+
   // Cabin filter
   if (cabin) {
     whereClauses.push(`LOWER(cabin.name) = LOWER(?)`);
@@ -70,13 +75,15 @@ export async function GET(req: NextRequest) {
 
   // Cost Range filter
   if (costMin !== null && costMax !== null) {
-    if (costMin === '6' && costMax === '6') {
-      whereClauses.push(`c.cost = 6`);
+    if (costMin === costMax) {
+      whereClauses.push(`c.cost = ?`);
+      values.push(Number(costMin));
     } else {
       whereClauses.push(`(c.cost IS NULL OR c.cost BETWEEN ? AND ?)`);
       values.push(Number(costMin), Number(costMax));
     }
   }
+
 
   // Search by name filter
   if (search) {
@@ -95,6 +102,14 @@ export async function GET(req: NextRequest) {
     weather.forEach((w) => {
       whereClauses.push(`c.text_box IS NOT NULL AND c.text_box LIKE ?`);
       values.push(`%${w}:%`);
+    });
+  }
+
+  // Traits filter
+  if (traits.length > 0) {
+    traits.forEach((trait) => {
+      whereClauses.push(`c.text_box IS NOT NULL AND c.text_box LIKE ?`);
+      values.push(`%${trait}%`);
     });
   }
 

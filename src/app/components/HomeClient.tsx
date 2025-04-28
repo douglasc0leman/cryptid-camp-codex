@@ -23,8 +23,10 @@ export default function HomeClient() {
   const [selectedType, setSelectedType] = useState('');
   const [selectedCabin, setSelectedCabin] = useState('');
   const [selectedRarity, setSelectedRarity] = useState('');
+  const [selectedSet, setSelectedSet] = useState('');
   const [selectedTaxa, setSelectedTaxa] = useState<string[]>([]);
   const [selectedWeather, setSelectedWeather] = useState<string[]>([]);
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
 
   const [inputValue, setInputValue] = useState('');
   const debouncedInputValue = useDebounce(inputValue, 400);
@@ -49,8 +51,10 @@ export default function HomeClient() {
     const type = searchParams.get('type') || '';
     const cabin = searchParams.get('cabin') || '';
     const rarity = searchParams.get('rarity') || '';
+    const set = searchParams.get('set') || '';
     const taxa = searchParams.get('taxa')?.split(',') || [];
     const weather = searchParams.get('weather')?.split(',') || [];
+    const traits = searchParams.get('traits')?.split(',') || [];
     const search = searchParams.get('search') || '';
     const effect = searchParams.get('effect') || '';
     const costMin = Number(searchParams.get('costMin') || '0');
@@ -58,8 +62,10 @@ export default function HomeClient() {
     setSelectedType(type);
     setSelectedCabin(cabin);
     setSelectedRarity(rarity);
+    setSelectedSet(set);
     setSelectedTaxa(taxa);
     setSelectedWeather(weather);
+    setSelectedTraits(traits);
     setInputValue(search);
     setSearchEffectQuery(effect);
     setCostRange([costMin, costMax]);
@@ -74,8 +80,10 @@ export default function HomeClient() {
     if (selectedType) params.set('type', selectedType);
     if (selectedCabin) params.set('cabin', selectedCabin);
     if (selectedRarity) params.set('rarity', selectedRarity);
+    if (selectedSet) params.set('set', selectedSet);
     if (selectedTaxa.length > 0) params.set('taxa', selectedTaxa.join(','));
     if (selectedWeather.length > 0) params.set('weather', selectedWeather.join(','));
+    if (selectedTraits.length > 0) params.set('traits', selectedTraits.join(','));
     if (inputValue) params.set('search', inputValue);
     if (searchEffectQuery) params.set('effect', searchEffectQuery);
     params.set('costMin', String(costRange[0]));
@@ -85,7 +93,7 @@ export default function HomeClient() {
     const newUrl = queryString ? `/?${queryString}` : '/';
 
     setPendingUrlFilters(newUrl);
-  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedTaxa, selectedWeather, inputValue, searchEffectQuery, costRange]);
+  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, inputValue, searchEffectQuery, costRange]);
 
   // Actually update URL
   useEffect(() => {
@@ -104,7 +112,7 @@ export default function HomeClient() {
     if (isPending) return;
 
     fetchCards(true);
-  }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedTaxa, selectedWeather, costRange, debouncedInputValue, debouncedEffectInput]);
+  }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, costRange, debouncedInputValue, debouncedEffectInput]);
 
   // Infinite scroll
   useEffect(() => {
@@ -137,8 +145,10 @@ export default function HomeClient() {
     setSelectedType('');
     setSelectedCabin('');
     setSelectedRarity('');
+    setSelectedSet('');
     setSelectedTaxa([]);
     setSelectedWeather([]);
+    setSelectedTraits([]);
     setInputValue('');
     setSearchEffectQuery('');
     setCostRange([0, 6]);
@@ -171,9 +181,11 @@ export default function HomeClient() {
     queryParams.set('limit', String(itemsPerPage));
     if (selectedTaxa.length > 0) queryParams.set('taxa', selectedTaxa.join(','));
     if (selectedWeather.length > 0) queryParams.set('weather', selectedWeather.join(','));
+    if (selectedTraits.length > 0) queryParams.set('traits', selectedTraits.join(','));
     if (selectedType) queryParams.set('type', selectedType);
     if (selectedCabin) queryParams.set('cabin', selectedCabin);
     if (selectedRarity) queryParams.set('rarity', selectedRarity);
+    if (selectedSet) queryParams.set('set', selectedSet);
     if (debouncedInputValue) queryParams.set('search', debouncedInputValue);
     if (debouncedEffectInput) queryParams.set('effect', debouncedEffectInput);
 
@@ -249,6 +261,10 @@ export default function HomeClient() {
           setSelectedWeather={setSelectedWeather}
           searchEffectQuery={searchEffectQuery}
           setSearchEffectQuery={setSearchEffectQuery}
+          selectedTraits={selectedTraits}
+          setSelectedTraits={setSelectedTraits}
+          selectedSet={selectedSet}
+          setSelectedSet={setSelectedSet}
         />
       </div>
 
@@ -296,8 +312,10 @@ export default function HomeClient() {
         type: selectedType,
         cabin: selectedCabin,
         rarity: selectedRarity,
+        set: selectedSet,
         taxa: selectedTaxa,
         weather: selectedWeather,
+        traits: selectedTraits,
         search: inputValue,
         effect: searchEffectQuery,
         costRange: costRange,

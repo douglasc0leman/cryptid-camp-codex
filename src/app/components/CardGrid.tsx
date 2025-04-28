@@ -18,43 +18,46 @@ export default function CardGrid({
     type: string
     cabin: string
     rarity: string
+    set: string
     taxa: string[]
     weather: string[]
+    traits: string[]
     search: string
     effect: string
     costRange: [number, number]
   }
-})
- {
+}) {
   const router = useRouter()
 
   const handleCardClick = (card: CryptidCampCard) => {
-    const cabinKey = card.cabin?.toLowerCase() ?? '';
-    
-    const queryParams = new URLSearchParams();
-    
-    if (filters.type) queryParams.set('type', filters.type);
-    if (filters.cabin) queryParams.set('cabin', filters.cabin);
-    if (filters.rarity) queryParams.set('rarity', filters.rarity);
-    if (filters.taxa.length > 0) queryParams.set('taxa', filters.taxa.join(','));
-    if (filters.weather.length > 0) queryParams.set('weather', filters.weather.join(','));
-    if (filters.search) queryParams.set('search', filters.search);
-    if (filters.effect) queryParams.set('effect', filters.effect);
-    queryParams.set('costMin', String(filters.costRange[0]));
-    queryParams.set('costMax', String(filters.costRange[1]));
-    queryParams.set('bg', cabinKey);
-  
-    const path = `/card/${card.id}?${queryParams.toString()}`;
-  
-    onCardClickStart();
+    const cabinKey = card.cabin?.toLowerCase() ?? ''
+
+    const queryParams = new URLSearchParams()
+
+    if (filters.type) queryParams.set('type', filters.type)
+    if (filters.cabin) queryParams.set('cabin', filters.cabin)
+    if (filters.rarity) queryParams.set('rarity', filters.rarity)
+    if (filters.set) queryParams.set('set', filters.set)
+    if (filters.taxa.length > 0) queryParams.set('taxa', filters.taxa.join(','))
+    if (filters.weather.length > 0) queryParams.set('weather', filters.weather.join(','))
+    if (filters.traits.length > 0) queryParams.set('traits', filters.traits.join(','))
+    if (filters.search) queryParams.set('search', filters.search)
+    if (filters.effect) queryParams.set('effect', filters.effect)
+    queryParams.set('costMin', String(filters.costRange[0]))
+    queryParams.set('costMax', String(filters.costRange[1]))
+    queryParams.set('bg', cabinKey)
+
+    const path = `/card/${card.id}?${queryParams.toString()}`
+
+    onCardClickStart()
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('scrollPosition', window.scrollY.toString());
+      sessionStorage.setItem('scrollPosition', window.scrollY.toString())
     }
-    router.push(path);
-  };  
+    router.push(path)
+  }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2 sm:px-4 auto-rows-fr min-h-[60vh]">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [1684px]:grid-cols-5 [1900px]:grid-cols-6 gap-4 px-2 sm:px-4 auto-rows-[1fr] transition-all duration-300">
       {cards.map((card) => {
         const cabinKey = card.cabin?.toLowerCase() ?? ''
         const { bg, text } = cabinColorMap[cabinKey] || {
@@ -69,10 +72,12 @@ export default function CardGrid({
           <div
             key={card.id}
             onClick={() => handleCardClick(card)}
-            className={`w-full h-[320px] flex flex-col cursor-pointer p-2 rounded shadow hover:shadow-md transform transition duration-300 ease-in-out hover:scale-105`}
+            className="transition-all duration-300 ease-in-out w-full aspect-[1/1] flex flex-col cursor-pointer p-2 rounded shadow hover:shadow-lg hover:scale-105"
+
+
             style={{ background: bg }}
           >
-            <div className="w-full h-[220px] relative overflow-hidden rounded mb-2 bg-gray-100 flex items-center justify-center">
+            <div className="relative w-full h-full rounded overflow-hidden bg-gray-100 flex items-center justify-center">
               {card.image_url ? (
                 <div
                   className={`relative w-full h-full transition-transform duration-300 ${
@@ -83,7 +88,8 @@ export default function CardGrid({
                     src={getCardArtUrl(card.image_url, card)}
                     alt={card.name}
                     fill
-                    className="object-cover w-full h-full"
+                    unoptimized
+                    className="object-cover"
                     sizes="100vw"
                   />
                 </div>
@@ -93,7 +99,7 @@ export default function CardGrid({
                 </div>
               )}
             </div>
-            <h2 className={`text-lg md:text-xl font-bold leading-tight truncate ${text}`}>{card.name}</h2>
+            <h2 className={`text-lg md:text-xl font-bold leading-tight truncate mt-2 ${text}`}>{card.name}</h2>
 
             <p className={`text-base leading-snug truncate ${text}`}>
               {[

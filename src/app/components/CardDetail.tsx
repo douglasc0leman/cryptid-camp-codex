@@ -29,23 +29,30 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
     const weatherConditions = [
       'Clear Sky', 'Fog', 'Day', 'Night', 'Heat', 'Rain', 'Storm', 'Calm'
     ];
-
-    const regex = new RegExp(`(${weatherConditions.join('|')}):`, 'g');
+    const traitConditions = [
+      'Digger', 'Flyer', 'Swimmer', 'Rush', 'First-Strike', 'Bloodsucker 1', 'Bloodsucker 2', 'Lethal', 'Flash', 'Raid 1', 'Raid 2', 'Swift'
+    ];
+  
+    // Merge both into one regex pattern
+    const regex = new RegExp(`(${[...weatherConditions, ...traitConditions].join('|')}):`, 'g');
     const parts = text.split(regex);
-
-    const elements: (string | { type: 'badge'; label: string })[] = [];
-
+  
+    const elements: (string | { type: 'badge'; label: string; badgeType: 'weather' | 'trait' })[] = [];
+  
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
       if (weatherConditions.includes(part)) {
-        elements.push({ type: 'badge', label: part });
+        elements.push({ type: 'badge', label: part, badgeType: 'weather' });
+      } else if (traitConditions.includes(part)) {
+        elements.push({ type: 'badge', label: part, badgeType: 'trait' });
       } else if (part.trim() !== '') {
         elements.push(part);
       }
     }
-
+  
     return elements;
   }
+  
 
   const backToCodexQuery = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -192,22 +199,26 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           {card.text_box && (
             <div className="text-[15px] leading-relaxed mt-4 whitespace-pre-wrap">
               {parseTextBox(card.text_box).map((part, idx) =>
-                typeof part === 'string' ? (
-                  <span key={idx}>{part}</span>
-                ) : (
-                  <span
-                    key={idx}
-                    onClick={() => {
-                      const query = new URLSearchParams();
-                      query.set('weather', part.label);
-                      router.push(`/?${query.toString()}`);
-                    }}
-                    className={`inline-block px-3 py-1 mx-1 rounded-full text-sm font-semibold align-middle cursor-pointer transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${needsDarkText ? 'bg-gray-200 text-gray-800' : 'bg-white/20 text-white border border-white/20'}`}
-                  >
-                    {part.label}
-                  </span>
-                )
-              )}
+  typeof part === 'string' ? (
+    <span key={idx}>{part}</span>
+  ) : (
+    <span
+      key={idx}
+      onClick={() => {
+        const query = new URLSearchParams();
+        if (part.badgeType === 'weather') {
+          query.set('weather', part.label);
+        } else if (part.badgeType === 'trait') {
+          query.set('traits', part.label);
+        }
+        router.push(`/?${query.toString()}`);
+      }}
+      className={`inline-block px-3 py-1 mx-1 rounded-full text-sm font-semibold align-middle cursor-pointer transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${needsDarkText ? 'bg-gray-200 text-gray-800' : 'bg-white/20 text-white border border-white/20'}`}
+    >
+      {part.label}
+    </span>
+  )
+)}
             </div>
           )}
 
@@ -270,7 +281,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           </div>
         </div>
       )}
-      
+
     </div>
   );
 }

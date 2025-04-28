@@ -22,9 +22,14 @@ type Props = {
   setSelectedWeather: React.Dispatch<React.SetStateAction<string[]>>;
   searchEffectQuery: string;
   setSearchEffectQuery: (value: string) => void;
+  selectedTraits: string[];
+  setSelectedTraits: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedSet: string;
+  setSelectedSet: (value: string) => void;
 };
-
+const setOptions = ['Base Set', '2024 Christmas', "2025 Valentine's Day", '2152 Monthly Promos'];
 const weatherConditions = ['Clear Sky', 'Fog', 'Day', 'Night', 'Heat', 'Rain', 'Storm', 'Calm'];
+const traitOptions = ['Digger', 'Flyer', 'Swimmer', 'Rush', 'First-Strike', 'Bloodsucker 1', 'Bloodsucker 2', 'Lethal', 'Flash', 'Raid 1', 'Swift'];
 const typeOptions = ['Cryptid', 'Trail', 'Supply', 'Memory', 'CZO', 'Trap', 'Environment', 'Lantern', 'Special Lantern'];
 const cabinOptions = ['Gem', 'Obsidian', 'Quartz', 'Fluorite', 'Meteorite', 'Malachite', 'Fulgurite', 'Lapis', 'Corallium'];
 const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Unique'];
@@ -55,9 +60,13 @@ export default function Sidebar({
   selectedWeather,
   setSelectedWeather,
   searchEffectQuery,
-  setSearchEffectQuery
+  setSearchEffectQuery,
+  selectedTraits,
+  setSelectedTraits,
+  selectedSet,
+  setSelectedSet
 }: Props) {
-  const hasActiveFilters = selectedType || selectedCabin || selectedRarity || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || searchEffectQuery || costRange[0] !== 0 || costRange[1] !== 6;
+  const hasActiveFilters = selectedType || selectedSet || selectedCabin || selectedRarity || selectedTraits.length > 0 || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || searchEffectQuery || costRange[0] !== 0 || costRange[1] !== 6;
 
   return (
     <aside className="relative min-h-screen w-full max-w-[16rem]">
@@ -138,7 +147,7 @@ export default function Sidebar({
 
           {/* Type Filter */}
           <div className="relative">
-            <label htmlFor="type" className="block text-sm font-medium mb-1">Search by Type</label>
+            <label htmlFor="type" className="block text-sm font-medium mb-1">Filter by Type</label>
             <div className="relative flex items-center">
               <select
                 id="type"
@@ -172,7 +181,7 @@ export default function Sidebar({
 
           {/* Cabin Filter */}
           <div className="relative">
-            <label htmlFor="cabin" className="block text-sm font-medium mb-1">Search by Cabin</label>
+            <label htmlFor="cabin" className="block text-sm font-medium mb-1">Filter by Cabin</label>
             <div className="relative flex items-center">
               <select
                 id="cabin"
@@ -205,7 +214,7 @@ export default function Sidebar({
 
           {/* Rarity Filter */}
           <div className="relative">
-            <label htmlFor="rarity" className="block text-sm font-medium mb-1">Search by Rarity</label>
+            <label htmlFor="rarity" className="block text-sm font-medium mb-1">Filter by Rarity</label>
             <div className="relative flex items-center">
               <select
                 id="rarity"
@@ -224,6 +233,39 @@ export default function Sidebar({
               {selectedRarity ? (
                 <button
                   onClick={() => setSelectedRarity('')}
+                  className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
+                >
+                  ×
+                </button>
+              ) : (
+                <div className="pointer-events-none absolute right-3 text-gray-500 text-xl">
+                  ↓
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Set Filter */}
+          <div className="relative">
+            <label htmlFor="set" className="block text-sm font-medium mb-1">Filter by Set</label>
+            <div className="relative flex items-center">
+              <select
+                id="set"
+                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none"
+                value={selectedSet}
+                onChange={(e) => setSelectedSet(e.target.value)}
+              >
+                <option value="">All</option>
+                {setOptions.map((setName) => (
+                  <option key={setName} value={setName}>
+                    {setName}
+                  </option>
+                ))}
+              </select>
+
+              {selectedSet ? (
+                <button
+                  onClick={() => setSelectedSet('')}
                   className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
                 >
                   ×
@@ -280,38 +322,39 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Taxa Filter */}
+          {/* Traits Filter */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium">Filter by Taxa</label>
-              {selectedTaxa.length > 0 && (
-                <button onClick={() => setSelectedTaxa([])} className="text-xs text-red-400 hover:text-red-600">
+              <label className="text-sm font-medium">Filter by Traits</label>
+              {selectedTraits.length > 0 && (
+                <button onClick={() => setSelectedTraits([])} className="text-xs text-red-400 hover:text-red-600">
                   Clear
                 </button>
               )}
             </div>
-            <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded custom-scrollbar">
-              {allTaxa.map((taxon) => (
-                <label key={taxon} className="flex items-center text-sm">
-                  <input
-                    type="checkbox"
-                    value={taxon}
-                    checked={selectedTaxa.includes(taxon)}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSelectedTaxa(prev =>
-                        prev.includes(value)
-                          ? prev.filter(t => t !== value)
-                          : [...prev, value]
-                      );
-                    }}
-                    className="mr-2"
-                  />
-                  {taxon}
-                </label>
+
+            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded custom-scrollbar max-h-64 overflow-y-auto">
+              {[...traitOptions].sort().map((trait) => (
+                <button
+                  key={trait}
+                  onClick={() => {
+                    setSelectedTraits((prev) =>
+                      prev.includes(trait)
+                        ? prev.filter((t) => t !== trait)
+                        : [...prev, trait]
+                    );
+                  }}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTraits.includes(trait)
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white/20 text-white border border-white/20'
+                    }`}
+                >
+                  {trait}
+                </button>
               ))}
             </div>
           </div>
+
 
           {/* Weather Filter */}
           <div>
@@ -323,28 +366,63 @@ export default function Sidebar({
                 </button>
               )}
             </div>
-            <div className="space-y-2 max-h-64 overflow-y-auto bg-white/10 p-2 rounded custom-scrollbar">
-              {weatherConditions.map((weather) => (
-                <label key={weather} className="flex items-center text-sm">
-                  <input
-                    type="checkbox"
-                    value={weather}
-                    checked={selectedWeather.includes(weather)}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSelectedWeather(prev =>
-                        prev.includes(value)
-                          ? prev.filter(w => w !== value)
-                          : [...prev, value]
-                      );
-                    }}
-                    className="mr-2"
-                  />
+
+            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded custom-scrollbar max-h-64 overflow-y-auto">
+              {[...weatherConditions].sort().map((weather) => (
+                <button
+                  key={weather}
+                  onClick={() => {
+                    setSelectedWeather((prev) =>
+                      prev.includes(weather)
+                        ? prev.filter((w) => w !== weather)
+                        : [...prev, weather]
+                    );
+                  }}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedWeather.includes(weather)
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white/20 text-white border border-white/20'
+                    }`}
+                >
                   {weather}
-                </label>
+                </button>
               ))}
             </div>
           </div>
+
+          {/* Taxa Filter */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium">Filter by Taxa</label>
+              {selectedTaxa.length > 0 && (
+                <button onClick={() => setSelectedTaxa([])} className="text-xs text-red-400 hover:text-red-600">
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded custom-scrollbar max-h-64 overflow-y-auto">
+              {/* Sort but always keep "All Taxa" first */}
+              {['All Taxa', ...allTaxa.filter(t => t !== 'All Taxa').sort()].map((taxon) => (
+                <button
+                  key={taxon}
+                  onClick={() => {
+                    setSelectedTaxa((prev) =>
+                      prev.includes(taxon)
+                        ? prev.filter((t) => t !== taxon)
+                        : [...prev, taxon]
+                    );
+                  }}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTaxa.includes(taxon)
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white/20 text-white border border-white/20'
+                    }`}
+                >
+                  {taxon}
+                </button>
+              ))}
+            </div>
+          </div>
+
 
         </div>
       </div>
