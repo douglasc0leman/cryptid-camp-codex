@@ -36,11 +36,11 @@ const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Unique'];
 const allTaxa = [
   'All Taxa', 'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
   'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
-  'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
-  'Impersator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Magus',
-  'Mecha', 'Mer', 'Observer', 'Phantom', 'Piscis', 'Prophet', 'Revenant',
-  'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
-  'Suid', 'Ursa', 'Vermis', 'Yokai'
+  'Earth', 'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
+  'Impersonator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Lightning',
+  'Magus', 'Mecha', 'Mer', 'Metal', 'Observer', 'Phantom', 'Piscis', 'Prophet',
+  'Revenant', 'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian',
+  'Spirit', 'Suid', 'Sylvan', 'Ursa', 'Vermis', 'Water', 'Wind', 'Yokai'
 ];
 
 export default function Sidebar({
@@ -277,7 +277,6 @@ export default function Sidebar({
               )}
             </div>
           </div>
-
 
           {/* Level Range */}
           <div className="pb-4 mb-4 border-b border-white/20">

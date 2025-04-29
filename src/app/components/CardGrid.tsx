@@ -73,8 +73,6 @@ export default function CardGrid({
             key={card.id}
             onClick={() => handleCardClick(card)}
             className="transition-all duration-300 ease-in-out w-full aspect-[1/1] flex flex-col cursor-pointer p-2 rounded shadow hover:shadow-lg hover:scale-105"
-
-
             style={{ background: bg }}
           >
             <div className="relative w-full h-full rounded overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -101,23 +99,29 @@ export default function CardGrid({
             </div>
             <h2 className={`text-lg md:text-xl font-bold leading-tight truncate mt-2 ${text}`}>{card.name}</h2>
 
-            <p className={`text-base leading-snug truncate ${text}`}>
-              {[
-                card.is_cryptid && 'Cryptid',
-                card.is_lantern && 'Lantern',
-                card.is_trail && 'Trail',
-                card.is_supply && 'Supply',
-                card.is_memory && 'Memory',
-                card.is_trap && 'Trap',
-                card.cabin,
-                card.is_common && 'Common',
-                card.is_uncommon && 'Uncommon',
-                card.is_rare && 'Rare',
-                card.is_unique && 'Unique',
-              ]
-                .filter(Boolean)
-                .join(' • ')}
-            </p>
+            <div className="flex items-center justify-between w-full mt-1">
+              <p className={`text-base leading-snug truncate ${text}`}>
+                {[
+                  card.is_cryptid && 'Cryptid',
+                  card.is_lantern && 'Lantern',
+                  card.is_trail && 'Trail',
+                  card.is_supply && 'Supply',
+                  card.is_memory && 'Memory',
+                  card.is_trap && 'Trap',
+                  card.cabin,
+                  card.is_common && 'Common',
+                  card.is_uncommon && 'Uncommon',
+                  card.is_rare && 'Rare',
+                  card.is_unique && 'Unique',
+                ]
+                  .filter(Boolean)
+                  .join(' • ')}
+              </p>
+
+              {card.set_number && (
+                <span className={`text-xs ml-2 whitespace-nowrap ${text}`}>{card.set_number}</span>
+              )}
+            </div>
           </div>
         )
       })}

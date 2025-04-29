@@ -73,16 +73,24 @@ export async function GET(req: NextRequest) {
     values.push(cabin);
   }
 
-  // Cost Range filter
-  if (costMin !== null && costMax !== null) {
-    if (costMin === costMax) {
-      whereClauses.push(`c.cost = ?`);
-      values.push(Number(costMin));
-    } else {
+// Cost Range filter
+if (costMin !== null && costMax !== null) {
+  if (costMin === costMax) {
+    // Exact cost match
+    whereClauses.push(`c.cost = ?`);
+    values.push(Number(costMin));
+  } else {
+    if (costMin === '0' && costMax === '6') {
+      // Default full range: include NULL costs
       whereClauses.push(`(c.cost IS NULL OR c.cost BETWEEN ? AND ?)`);
-      values.push(Number(costMin), Number(costMax));
+    } else {
+      // Specific range: only BETWEEN
+      whereClauses.push(`c.cost BETWEEN ? AND ?`);
     }
+    values.push(Number(costMin), Number(costMax));
   }
+}
+
 
 
   // Search by name filter

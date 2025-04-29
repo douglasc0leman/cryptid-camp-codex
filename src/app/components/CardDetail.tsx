@@ -66,14 +66,15 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
     if (!card.taxon) return [];
 
     const allTaxa = [
-      'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
+      'All Taxa', 'Alien', 'Angel', 'Anuran', 'Arachnid', 'Avian', 'Bovine', 'Canine', 'Caprid',
       'Celestial', 'Cervine', 'Cephalopod', 'Demon', 'Deity', 'Draconid', 'Dulcis',
-      'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
-      'Impersator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Magus',
-      'Mecha', 'Mer', 'Observer', 'Phantom', 'Piscis', 'Prophet', 'Revenant',
-      'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian', 'Spirit',
-      'Suid', 'Ursa', 'Vermis', 'Yokai'
+      'Earth', 'Elemental', 'Equine', 'Fae', 'Ferus', 'Feline', 'Golem', 'Humanoid',
+      'Impersonator', 'Insectoid', 'Interloper', 'Invader', 'Lagomorph', 'Lightning',
+      'Magus', 'Mecha', 'Mer', 'Metal', 'Observer', 'Phantom', 'Piscis', 'Prophet',
+      'Revenant', 'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian',
+      'Spirit', 'Suid', 'Sylvan', 'Ursa', 'Vermis', 'Water', 'Wind', 'Yokai'
     ];
+    
 
     const splitTaxa = card.taxon.split(' ').filter(t => t.trim() !== '');
 

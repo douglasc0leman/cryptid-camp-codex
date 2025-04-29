@@ -101,7 +101,7 @@ export default function HomeClient() {
     if (!debouncedUrlFilters) return;
 
     startTransition(() => {
-        window.history.replaceState(null, '', debouncedUrlFilters);
+      window.history.replaceState(null, '', debouncedUrlFilters);
 
     });
   }, [debouncedUrlFilters, filtersLoaded, startTransition, router]);
@@ -222,7 +222,7 @@ export default function HomeClient() {
 
     setIsFetchingCards(false);
     if (spinnerTimeoutRef.current) clearTimeout(spinnerTimeoutRef.current);
-    setIsLoaded(true); 
+    setIsLoaded(true);
   };
 
   return (
@@ -233,9 +233,8 @@ export default function HomeClient() {
 
       {/* Sidebar */}
       <div
-        className={`fixed md:static top-0 left-0 z-40 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:static top-0 left-0 z-40 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         <div className="flex md:hidden justify-between items-center p-4 border-b bg-white">
           <h2 className="text-lg font-bold">Filters</h2>
@@ -270,64 +269,65 @@ export default function HomeClient() {
 
       {/* Mobile Header */}
       <header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-30">
-  <h1 className="text-xl font-bold">Cryptid Camp Codex</h1>
-  <button onClick={() => setIsSidebarOpen(prev => !prev)}>
-    {isSidebarOpen ? (
-      <X className="w-6 h-6" />
-    ) : (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    )}
-  </button>
-</header>
+        <h1 className="text-xl font-bold">Cryptid Camp Codex</h1>
+        <button onClick={() => setIsSidebarOpen(prev => !prev)}>
+          {isSidebarOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          )}
+        </button>
+      </header>
       {/* Main */}
       <main className="flex-1 relative overflow-y-auto pt-16">
         <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/cardgrid-bg.png')" }} />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-10" />
 
         <div className="relative z-20 p-8">
-          
-        {!isLoaded ? (
-  // While loading (skeleton)
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2 sm:px-4 auto-rows-fr">
-    {Array.from({ length: 8 }).map((_, idx) => (
-      <SkeletonCard key={idx} />
-    ))}
-  </div>
-) : cards.length === 0 ? (
-  // After loading, if no matching cards
-  <div className="text-center text-gray-600 mt-16 text-lg flex flex-col items-center space-y-4">
-    <Image src="/images/squonk.png" alt="Crying Squonk" width={200} height={200} className="opacity-80" />
-    <p>No cards match your search or filter criteria.</p>
-  </div>
-) : (
-  // After loading, if cards available
-  <>
-    <CardGrid
-      cards={cards}
-      currentPage={1}
-      onCardClickStart={() => setIsRoutingToCard(true)}
-      filters={{
-        type: selectedType,
-        cabin: selectedCabin,
-        rarity: selectedRarity,
-        set: selectedSet,
-        taxa: selectedTaxa,
-        weather: selectedWeather,
-        traits: selectedTraits,
-        search: inputValue,
-        effect: searchEffectQuery,
-        costRange: costRange,
-      }}
-    />
-    <div ref={loaderRef} className="h-16"></div>
-    {isFetchingCards && cards.length > 0 && (
-      <p className="text-center my-4">Loading more cards...</p>
-    )}
-  </>
-)}
-          
+
+          {!isLoaded ? (
+            // While loading (skeleton)
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2 sm:px-4 min-h-[50vh] auto-rows-fr place-items-start">
+
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <SkeletonCard key={idx} />
+              ))}
+            </div>
+          ) : cards.length === 0 ? (
+            // After loading, if no matching cards
+            <div className="text-center text-gray-600 mt-16 text-lg flex flex-col items-center space-y-4">
+              <Image src="/images/squonk.png" alt="Crying Squonk" width={200} height={200} className="opacity-80" />
+              <p>No cards match your search or filter criteria.</p>
+            </div>
+          ) : (
+            // After loading, if cards available
+            <>
+              <CardGrid
+                cards={cards}
+                currentPage={1}
+                onCardClickStart={() => setIsRoutingToCard(true)}
+                filters={{
+                  type: selectedType,
+                  cabin: selectedCabin,
+                  rarity: selectedRarity,
+                  set: selectedSet,
+                  taxa: selectedTaxa,
+                  weather: selectedWeather,
+                  traits: selectedTraits,
+                  search: inputValue,
+                  effect: searchEffectQuery,
+                  costRange: costRange,
+                }}
+              />
+              <div ref={loaderRef} className="h-16"></div>
+              {isFetchingCards && cards.length > 0 && (
+                <p className="text-center my-4">Loading more cards...</p>
+              )}
+            </>
+          )}
+
         </div>
 
         {/* Loading Overlay */}
