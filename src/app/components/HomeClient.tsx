@@ -95,6 +95,18 @@ export default function HomeClient() {
     setPendingUrlFilters(newUrl);
   }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, inputValue, searchEffectQuery, costRange]);
 
+  useEffect(() => {
+    if (!filtersLoaded || !debouncedUrlFilters) return;
+  
+    const fetchAllCardIds = async () => {
+      const res = await fetch(`/api/card-ids${debouncedUrlFilters}`);
+      const allIds = await res.json();
+      sessionStorage.setItem('visibleCardIds', JSON.stringify(allIds));
+    };
+  
+    fetchAllCardIds();
+  }, [debouncedUrlFilters, filtersLoaded]);
+
   // Actually update URL
   useEffect(() => {
     if (!filtersLoaded) return;

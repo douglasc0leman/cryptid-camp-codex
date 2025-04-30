@@ -51,13 +51,15 @@ export default function CardGrid({
 
     onCardClickStart()
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('scrollPosition', window.scrollY.toString())
+      sessionStorage.setItem('scrollPosition', window.scrollY.toString());
+      sessionStorage.setItem('currentCardId', card.id);
     }
+    
     router.push(path)
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [1684px]:grid-cols-5 [1900px]:grid-cols-6 gap-4 px-2 sm:px-4 auto-rows-[1fr] transition-all duration-300">
+    <div className="grid gap-4 px-2 sm:px-4 auto-rows-[1fr] transition-all duration-300" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
       {cards.map((card) => {
         const cabinKey = card.cabin?.toLowerCase() ?? ''
         const { bg, text } = cabinColorMap[cabinKey] || {

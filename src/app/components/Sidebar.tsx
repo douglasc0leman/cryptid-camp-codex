@@ -69,13 +69,13 @@ export default function Sidebar({
   const hasActiveFilters = selectedType || selectedSet || selectedCabin || selectedRarity || selectedTraits.length > 0 || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || searchEffectQuery || costRange[0] !== 0 || costRange[1] !== 6;
 
   return (
-    <aside className="relative min-h-screen w-full max-w-[16rem]">
+    <aside className="relative min-h-screen w-full max-w-[16rem]  bg-repeat-y"  style={{ minHeight: '200vh' }}>
       {/* Background */}
-      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/sidebar-bg.png')" }} />
+      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/sidebar-bg.png')", backgroundRepeat: 'repeat-y' }} />
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" />
 
       {/* Content */}
-      <div className="relative z-20 flex flex-col h-full max-h-screen overflow-y-auto">
+      <div className="relative z-20 flex flex-col h-full">
         {/* Logo */}
         <div className="mb-4 mt-4 px-4 flex justify-center shrink-0">
           <Link href="/" className="transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-lg">
@@ -102,7 +102,7 @@ export default function Sidebar({
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 text-white custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 text-white ">
           {/* Search by Name */}
           <div className="relative">
             <label htmlFor="search" className="block text-sm font-medium mb-1">Search by Name</label>
@@ -332,7 +332,7 @@ export default function Sidebar({
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded custom-scrollbar max-h-64 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  max-h-64 overflow-y-auto">
               {[...traitOptions].sort().map((trait) => (
                 <button
                   key={trait}
@@ -366,7 +366,7 @@ export default function Sidebar({
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded custom-scrollbar max-h-64 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  max-h-64 overflow-y-auto">
               {[...weatherConditions].sort().map((weather) => (
                 <button
                   key={weather}
@@ -399,7 +399,7 @@ export default function Sidebar({
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded custom-scrollbar max-h-64 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  max-h-128 overflow-y-auto custom-scrollbar">
               {/* Sort but always keep "All Taxa" first */}
               {['All Taxa', ...allTaxa.filter(t => t !== 'All Taxa').sort()].map((taxon) => (
                 <button

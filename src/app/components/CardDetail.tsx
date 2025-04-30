@@ -12,12 +12,33 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchParams = useSearchParams();
-  const bgFromQuery = searchParams.get('bg') ?? '';
-  const { bg, text } = cabinColorMap[bgFromQuery] ?? { bg: '#ffffff', text: 'text-gray-800' };
-
+  const cabinKey = card.cabin?.toLowerCase() ?? '';
+  const { bg, text } = cabinColorMap[cabinKey] ?? { bg: '#ffffff', text: 'text-gray-800' };
   const textClass = text;
   const cabin = card.cabin?.toLowerCase() || '';
-  const needsDarkText = ['#eaf4ff', '#edf2f7', '#ffffff'].includes(bg.toLowerCase()) || ['meteorite', 'corallium', 'gem', 'fulgurite', 'quartz'].includes(cabin);
+  const needsDarkText = ['#eaf4ff', '#edf2f7', '#ffffff'].includes(bg.toLowerCase()) || ['meteorite', 'gem', 'fulgurite', 'quartz'].includes(cabin);
+
+  const cardIdList = useMemo(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(sessionStorage.getItem('visibleCardIds') || '[]');
+    } catch {
+      return [];
+    }
+  }, []);
+  
+  const currentIndex = cardIdList.indexOf(card.id);
+  const prevCardId = currentIndex > 0 ? cardIdList[currentIndex - 1] : null;
+  const nextCardId = currentIndex < cardIdList.length - 1 ? cardIdList[currentIndex + 1] : null;
+  
+  const baseQuery = useMemo(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    return params.toString();
+  }, [searchParams]);
+  
+  const cleanQuery = new URLSearchParams(baseQuery);
+  cleanQuery.delete('bg');
+  cleanQuery.set('bg', card.cabin?.toLowerCase() || '');
 
   const badgeMap: Record<string, string> = {
     Lapis: '/images/lapis.png', Obsidian: '/images/obsidian.png', Quartz: '/images/quartz.png',
@@ -32,13 +53,13 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
     const traitConditions = [
       'Digger', 'Flyer', 'Swimmer', 'Rush', 'First-Strike', 'Bloodsucker 1', 'Bloodsucker 2', 'Lethal', 'Flash', 'Raid 1', 'Raid 2', 'Swift'
     ];
-  
+
     // Merge both into one regex pattern
     const regex = new RegExp(`(${[...weatherConditions, ...traitConditions].join('|')}):`, 'g');
     const parts = text.split(regex);
-  
+
     const elements: (string | { type: 'badge'; label: string; badgeType: 'weather' | 'trait' })[] = [];
-  
+
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
       if (weatherConditions.includes(part)) {
@@ -49,10 +70,10 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
         elements.push(part);
       }
     }
-  
+
     return elements;
   }
-  
+
 
   const backToCodexQuery = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -61,7 +82,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
   }, [searchParams]);
 
   const badgeSrc = badgeMap[card.cabin!];
-
+  
   const taxons = useMemo(() => {
     if (!card.taxon) return [];
 
@@ -74,7 +95,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
       'Revenant', 'Rodent', 'Sanguivore', 'Sasquatch', 'Saurian', 'Serpent', 'Simian',
       'Spirit', 'Suid', 'Sylvan', 'Ursa', 'Vermis', 'Water', 'Wind', 'Yokai'
     ];
-    
+
 
     const splitTaxa = card.taxon.split(' ').filter(t => t.trim() !== '');
 
@@ -128,8 +149,16 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           {/* Mobile Badge */}
           {badgeSrc && (
             <div className="flex md:hidden flex-col items-center">
-              <Image src={badgeSrc} alt={`${card.cabin} badge`} width={96} height={96} />
-              <span className={`mt-2 text-lg font-extrabold tracking-wide uppercase ${textClass}`}>{card.cabin}</span>
+              {/* Mobile Badge (no hover effect) */}
+              <Image
+                src={badgeSrc}
+                alt={`${card.cabin} badge`}
+                width={96}
+                height={96}
+              />
+              <span className={`mt-2 text-lg font-extrabold tracking-wide uppercase ${textClass}`}>
+                {card.cabin}
+              </span>
             </div>
           )}
 
@@ -159,13 +188,14 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           </div>
 
           {/* Rarity */}
-          {(card.is_common || card.is_uncommon || card.is_rare || card.is_unique) && (
+          {(card.is_common || card.is_uncommon || card.is_rare || card.is_unique) ? (
             <div className="text-sm">
               <span className="font-semibold">
                 {card.is_unique ? 'Unique' : card.is_rare ? 'Rare' : card.is_uncommon ? 'Uncommon' : 'Common'}
               </span> – {card.is_unique ? 'You can have 1 copy per deck.' : card.is_rare ? 'You can have up to 2 copies per deck.' : card.is_uncommon ? 'You can have up to 3 copies per deck.' : 'You can have up to 4 copies per deck.'}
             </div>
-          )}
+          ):
+          (<></>)}
 
           {/* Taxa */}
           {taxons.length > 0 && (
@@ -200,29 +230,28 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           {card.text_box && (
             <div className="text-[15px] leading-relaxed mt-4 whitespace-pre-wrap">
               {parseTextBox(card.text_box).map((part, idx) =>
-  typeof part === 'string' ? (
-    <span key={idx}>{part}</span>
-  ) : (
-    <span
-      key={idx}
-      onClick={() => {
-        const query = new URLSearchParams();
-        if (part.badgeType === 'weather') {
-          query.set('weather', part.label);
-        } else if (part.badgeType === 'trait') {
-          query.set('traits', part.label);
-        }
-        router.push(`/?${query.toString()}`);
-      }}
-      className={`inline-block px-3 py-1 mx-1 rounded-full text-sm font-semibold align-middle cursor-pointer transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${needsDarkText ? 'bg-gray-200 text-gray-800' : 'bg-white/20 text-white border border-white/20'}`}
-    >
-      {part.label}
-    </span>
-  )
-)}
+                typeof part === 'string' ? (
+                  <span key={idx}>{part}</span>
+                ) : (
+                  <span
+                    key={idx}
+                    onClick={() => {
+                      const query = new URLSearchParams();
+                      if (part.badgeType === 'weather') {
+                        query.set('weather', part.label);
+                      } else if (part.badgeType === 'trait') {
+                        query.set('traits', part.label);
+                      }
+                      router.push(`/?${query.toString()}`);
+                    }}
+                    className={`inline-block px-3 py-1 mx-1 rounded-full text-sm font-semibold align-middle cursor-pointer transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${needsDarkText ? 'bg-gray-200 text-gray-800' : 'bg-white/20 text-white border border-white/20'}`}
+                  >
+                    {part.label}
+                  </span>
+                )
+              )}
             </div>
           )}
-
 
           {/* Illustrator, Set Name, Number */}
           {(card.illustrator || card.set_name || card.set_number) && (
@@ -241,18 +270,53 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
           )}
 
           {/* Back Button */}
-          <div className="pt-10 pb-4 flex justify-center">
-            <Link href={backToCodexQuery ? `/?${backToCodexQuery}` : '/'} className={`px-6 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}>
-              ← Back to Codex
+          <div className="pt-10 pb-4 flex justify-center gap-4 flex-wrap">
+            {prevCardId && (
+              <Link
+              href={`/card/${prevCardId}?${cleanQuery.toString()}`}
+                className={`px-4 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              >
+                ← Previous
+              </Link>
+            )}
+            <Link
+              href={backToCodexQuery ? `/?${backToCodexQuery}` : '/'}
+              className={`px-6 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+            >
+              ↑ Back to Codex
             </Link>
+            {nextCardId && (
+              <Link
+                href={`/card/${nextCardId}?${cleanQuery.toString()}`}
+                className={`px-4 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              >
+                Next →
+              </Link>
+            )}
           </div>
+
         </div>
 
         {/* Desktop Badge */}
+
         {badgeSrc && (
           <div className="hidden md:flex absolute top-4 right-4 flex-col items-center">
-            <Image src={badgeSrc} alt={`${card.cabin} badge`} width={96} height={96} />
-            <span className={`mt-2 text-lg font-extrabold tracking-wide uppercase ${textClass}`}>{card.cabin}</span>
+            {/* Desktop Badge with hover effect */}
+            <Link
+              href={`/?cabin=${encodeURIComponent(card.cabin!)}`}
+              className="group cursor-pointer"
+            >
+              <Image
+                src={badgeSrc}
+                alt={`${card.cabin} badge`}
+                width={96}
+                height={96}
+                className="transition-transform duration-300 transform rounded-full group-hover:scale-110 group-hover:shadow-md"
+              />
+            </Link>
+            <span className={`mt-2 text-lg font-extrabold tracking-wide uppercase ${textClass}`}>
+              {card.cabin}
+            </span>
           </div>
         )}
       </div>
