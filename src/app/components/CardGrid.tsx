@@ -59,7 +59,9 @@ export default function CardGrid({
   }
 
   return (
-    <div className="grid gap-4 px-2 sm:px-4 auto-rows-[1fr] transition-all duration-300" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+    <div
+      className="grid gap-4 px-2 sm:px-4 auto-rows-[1fr] transition-all duration-300"
+      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
       {cards.map((card) => {
         const cabinKey = card.cabin?.toLowerCase() ?? ''
         const { bg, text } = cabinColorMap[cabinKey] || {
