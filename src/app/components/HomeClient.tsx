@@ -8,9 +8,12 @@ import CardGrid from '../components/CardGrid';
 import Sidebar from '../components/Sidebar';
 import type { CryptidCampCard } from '../types/Card';
 import Image from 'next/image';
+import { useScrollToTopOnFiltersChange } from '@/hooks/useScrollToTopOnFiltersChange';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export default function HomeClient() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -35,6 +38,21 @@ export default function HomeClient() {
 
   const [costRange, setCostRange] = useState<[number, number]>([0, 6]);
 
+  const filters = {
+    type: selectedType,
+    cabin: selectedCabin,
+    rarity: selectedRarity,
+    set: selectedSet,
+    taxa: selectedTaxa,
+    weather: selectedWeather,
+    traits: selectedTraits,
+    search: inputValue,
+    effect: searchEffectQuery,
+    costRange,
+  };
+
+  useScrollToTopOnFiltersChange(filters);
+
   const itemsPerPage = 12;
   const loaderRef = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
@@ -46,7 +64,6 @@ export default function HomeClient() {
 
   const spinnerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Pull filters from URL
   useEffect(() => {
     const type = searchParams.get('type') || '';
     const cabin = searchParams.get('cabin') || '';
@@ -72,7 +89,6 @@ export default function HomeClient() {
     setFiltersLoaded(true);
   }, [searchParams]);
 
-  // Update URL when filters change
   useEffect(() => {
     if (!filtersLoaded) return;
 
@@ -97,28 +113,25 @@ export default function HomeClient() {
 
   useEffect(() => {
     if (!filtersLoaded || !debouncedUrlFilters) return;
-  
+
     const fetchAllCardIds = async () => {
       const res = await fetch(`/api/card-ids${debouncedUrlFilters}`);
       const allIds = await res.json();
       sessionStorage.setItem('visibleCardIds', JSON.stringify(allIds));
     };
-  
+
     fetchAllCardIds();
   }, [debouncedUrlFilters, filtersLoaded]);
 
-  // Actually update URL
   useEffect(() => {
     if (!filtersLoaded) return;
     if (!debouncedUrlFilters) return;
 
     startTransition(() => {
       window.history.replaceState(null, '', debouncedUrlFilters);
-
     });
   }, [debouncedUrlFilters, filtersLoaded, startTransition, router]);
 
-  // Fetch cards when filters change, but wait until router is stable
   useEffect(() => {
     if (!filtersLoaded) return;
     if (isPending) return;
@@ -126,7 +139,6 @@ export default function HomeClient() {
     fetchCards(true);
   }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, costRange, debouncedInputValue, debouncedEffectInput]);
 
-  // Infinite scroll
   useEffect(() => {
     if (!loaderRef.current) return;
 
@@ -141,7 +153,6 @@ export default function HomeClient() {
     return () => observer.disconnect();
   }, [isFetchingCards, hasMore]);
 
-  // Scroll to top button
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -152,7 +163,6 @@ export default function HomeClient() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Clear filters
   const clearFilters = () => {
     setSelectedType('');
     setSelectedCabin('');
@@ -182,7 +192,6 @@ export default function HomeClient() {
     );
   }
 
-  // Main fetch
   const fetchCards = async (reset = false) => {
     setIsFetchingCards(true);
 
@@ -239,50 +248,81 @@ export default function HomeClient() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-gray-800 relative">
-      {isSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)} />
+      {/* Separate background for the sidebar */}
+      <div
+        className={`fixed md:static top-0 left-0 z-90 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto w-64 z-80 h-screen bg-repeat-y z-0 md:static md:h-auto
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          ${!isSidebarOpen && 'pointer-events-none md:pointer-events-auto'}`}
+        style={{
+          backgroundImage: "url('/images/sidebar-bg.png')",
+        }}
+
+      >
+      {isMobile ? (
+        <div className="relative min-h-screen">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
+          <div className="relative z-20">
+          <Sidebar
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
+            selectedCabin={selectedCabin}
+            setSelectedCabin={setSelectedCabin}
+            selectedRarity={selectedRarity}
+            setSelectedRarity={setSelectedRarity}
+            selectedTaxa={selectedTaxa}
+            setSelectedTaxa={setSelectedTaxa}
+            searchQuery={inputValue}
+            setSearchQuery={setInputValue}
+            costRange={costRange}
+            setCostRange={setCostRange}
+            onClearFilters={clearFilters}
+            selectedWeather={selectedWeather}
+            setSelectedWeather={setSelectedWeather}
+            searchEffectQuery={searchEffectQuery}
+            setSearchEffectQuery={setSearchEffectQuery}
+            selectedTraits={selectedTraits}
+            setSelectedTraits={setSelectedTraits}
+            selectedSet={selectedSet}
+            setSelectedSet={setSelectedSet}
+          />
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
+          <div className="relative z-20">
+          <Sidebar
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
+            selectedCabin={selectedCabin}
+            setSelectedCabin={setSelectedCabin}
+            selectedRarity={selectedRarity}
+            setSelectedRarity={setSelectedRarity}
+            selectedTaxa={selectedTaxa}
+            setSelectedTaxa={setSelectedTaxa}
+            searchQuery={inputValue}
+            setSearchQuery={setInputValue}
+            costRange={costRange}
+            setCostRange={setCostRange}
+            onClearFilters={clearFilters}
+            selectedWeather={selectedWeather}
+            setSelectedWeather={setSelectedWeather}
+            searchEffectQuery={searchEffectQuery}
+            setSearchEffectQuery={setSearchEffectQuery}
+            selectedTraits={selectedTraits}
+            setSelectedTraits={setSelectedTraits}
+            selectedSet={selectedSet}
+            setSelectedSet={setSelectedSet}
+          />
+          </div>
+        </>
       )}
 
-      {/* Sidebar */}
-      <div
-        className={`fixed md:static top-0 left-0 z-40 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
-      >
-        <div className="flex md:hidden justify-between items-center p-4 border-b bg-white">
-          <h2 className="text-lg font-bold">Filters</h2>
-          <button onClick={() => setIsSidebarOpen(false)}>
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <Sidebar
-          selectedType={selectedType}
-          setSelectedType={setSelectedType}
-          selectedCabin={selectedCabin}
-          setSelectedCabin={setSelectedCabin}
-          selectedRarity={selectedRarity}
-          setSelectedRarity={setSelectedRarity}
-          selectedTaxa={selectedTaxa}
-          setSelectedTaxa={setSelectedTaxa}
-          searchQuery={inputValue}
-          setSearchQuery={setInputValue}
-          costRange={costRange}
-          setCostRange={setCostRange}
-          onClearFilters={clearFilters}
-          selectedWeather={selectedWeather}
-          setSelectedWeather={setSelectedWeather}
-          searchEffectQuery={searchEffectQuery}
-          setSearchEffectQuery={setSearchEffectQuery}
-          selectedTraits={selectedTraits}
-          setSelectedTraits={setSelectedTraits}
-          selectedSet={selectedSet}
-          setSelectedSet={setSelectedSet}
-        />
       </div>
 
-      {/* Mobile Header */}
-      <header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-30">
+      <header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-40">
         <h1 className="text-xl font-bold">Cryptid Camp Codex</h1>
-        <button onClick={() => setIsSidebarOpen(prev => !prev)}>
+        <button onClick={() => setIsSidebarOpen((prev) => !prev)}>
           {isSidebarOpen ? (
             <X className="w-6 h-6" />
           ) : (
@@ -292,29 +332,29 @@ export default function HomeClient() {
           )}
         </button>
       </header>
-      {/* Main */}
-      <main className="flex-1 relative overflow-y-auto pt-16">
+
+      <main className="flex-1 relative overflow-y-auto pt-16"
+        onClick={() => {
+          if (window.innerWidth < 768 && isSidebarOpen) {
+            setIsSidebarOpen(false);
+          }
+        }}>
         <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/cardgrid-bg.png')" }} />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-10" />
 
-        <div className="relative z-20 p-8">
-
+        <div className="relative z-[30] p-8">
           {!isLoaded ? (
-            // While loading (skeleton)
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2 sm:px-4 min-h-[50vh] auto-rows-fr place-items-start">
-
               {Array.from({ length: 8 }).map((_, idx) => (
                 <SkeletonCard key={idx} />
               ))}
             </div>
           ) : cards.length === 0 ? (
-            // After loading, if no matching cards
             <div className="text-center text-gray-600 mt-16 text-lg flex flex-col items-center space-y-4">
               <Image src="/images/squonk.png" alt="Crying Squonk" width={200} height={200} className="opacity-80" />
               <p>No cards match your search or filter criteria.</p>
             </div>
           ) : (
-            // After loading, if cards available
             <>
               <CardGrid
                 cards={cards}
@@ -339,18 +379,15 @@ export default function HomeClient() {
               )}
             </>
           )}
-
         </div>
-
-        {/* Loading Overlay */}
-        {(isRoutingToCard) && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
-          </div>
-        )}
       </main>
 
-      {/* Scroll to Top */}
+      {isRoutingToCard && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+        </div>
+      )}
+
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

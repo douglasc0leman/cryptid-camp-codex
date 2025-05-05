@@ -69,12 +69,12 @@ export default function Sidebar({
   const hasActiveFilters = selectedType || selectedSet || selectedCabin || selectedRarity || selectedTraits.length > 0 || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || searchEffectQuery || costRange[0] !== 0 || costRange[1] !== 6;
 
   return (
-    <aside className="relative min-h-screen w-full max-w-[16rem]  bg-repeat-y"  style={{ minHeight: '200vh' }}>
-      {/* Background */}
-      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/sidebar-bg.png')", backgroundRepeat: 'repeat-y' }} />
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" />
+    <aside className="relative min-h-screen w-full max-w-[16rem]">
+      
+        {/* blur effect over sidebar */}
+        {/* <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" /> */}
 
-      {/* Content */}
+      {/* Content Container */}
       <div className="relative z-20 flex flex-col h-full">
         {/* Logo */}
         <div className="mb-4 mt-4 px-4 flex justify-center shrink-0">
@@ -102,7 +102,7 @@ export default function Sidebar({
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 text-white ">
+        <div className="px-4 pb-4 space-y-6 text-white md:overflow-y-auto md:max-h-[calc(100vh-4rem)] flex-1 custom-scrollbar">
           {/* Search by Name */}
           <div className="relative">
             <label htmlFor="search" className="block text-sm font-medium mb-1">Search by Name</label>
@@ -332,7 +332,7 @@ export default function Sidebar({
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  max-h-64 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
               {[...traitOptions].sort().map((trait) => (
                 <button
                   key={trait}
@@ -390,7 +390,7 @@ export default function Sidebar({
 
           {/* Taxa Filter */}
           <div>
-            <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center mb-2">
               <label className="text-sm font-medium">Filter by Taxa</label>
               {selectedTaxa.length > 0 && (
                 <button onClick={() => setSelectedTaxa([])} className="text-xs text-red-400 hover:text-red-600">
@@ -398,33 +398,32 @@ export default function Sidebar({
                 </button>
               )}
             </div>
-
-            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  max-h-128 overflow-y-auto custom-scrollbar">
-              {/* Sort but always keep "All Taxa" first */}
-              {['All Taxa', ...allTaxa.filter(t => t !== 'All Taxa').sort()].map((taxon) => (
-                <button
-                  key={taxon}
-                  onClick={() => {
-                    setSelectedTaxa((prev) =>
-                      prev.includes(taxon)
-                        ? prev.filter((t) => t !== taxon)
-                        : [...prev, taxon]
-                    );
-                  }}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTaxa.includes(taxon)
-                    ? 'bg-indigo-500 text-white'
-                    : 'bg-white/20 text-white border border-white/20'
-                    }`}
-                >
-                  {taxon}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  overflow-y-auto custom-scrollbar">
+                
+                {/* Sort but always keep "All Taxa" first */}
+                {['All Taxa', ...allTaxa.filter(t => t !== 'All Taxa').sort()].map((taxon) => (
+                  <button
+                    key={taxon}
+                    onClick={() => {
+                      setSelectedTaxa((prev) =>
+                        prev.includes(taxon)
+                          ? prev.filter((t) => t !== taxon)
+                          : [...prev, taxon]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTaxa.includes(taxon)
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {taxon}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-
         </div>
-      </div>
     </aside>
   );
 }
