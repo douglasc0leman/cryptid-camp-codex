@@ -70,9 +70,9 @@ export default function Sidebar({
 
   return (
     <aside className="relative min-h-screen w-full max-w-[16rem]">
-      
-        {/* blur effect over sidebar */}
-        {/* <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" /> */}
+
+      {/* blur effect over sidebar */}
+      {/* <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" /> */}
 
       {/* Content Container */}
       <div className="relative z-20 flex flex-col h-full">
@@ -92,12 +92,12 @@ export default function Sidebar({
 
         {/* Clear All Filters */}
         {hasActiveFilters && (
-          <div className="px-2 mb-4">
+          <div className="px-2 mb-4 flex justify-center">
             <button
               onClick={onClearFilters}
-              className="w-full bg-gray-200 text-gray-800 p-2 rounded shadow hover:bg-gray-300 text-sm font-medium"
+              className="w-[90%] max-w-sm rounded-md px-5 py-3 text-sm font-semibold backdrop-blur-sm bg-white/10 text-white border border-white/20 shadow hover:bg-white/20 transition-all duration-200 tracking-wide animate-float-pulse"
             >
-              Clear All Filters
+              ✨ Clear All Filters ✨
             </button>
           </div>
         )}
@@ -390,7 +390,7 @@ export default function Sidebar({
 
           {/* Taxa Filter */}
           <div>
-          <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-2">
               <label className="text-sm font-medium">Filter by Taxa</label>
               {selectedTaxa.length > 0 && (
                 <button onClick={() => setSelectedTaxa([])} className="text-xs text-red-400 hover:text-red-600">
@@ -399,31 +399,31 @@ export default function Sidebar({
               )}
             </div>
             <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  overflow-y-auto custom-scrollbar">
-                
-                {/* Sort but always keep "All Taxa" first */}
-                {['All Taxa', ...allTaxa.filter(t => t !== 'All Taxa').sort()].map((taxon) => (
-                  <button
-                    key={taxon}
-                    onClick={() => {
-                      setSelectedTaxa((prev) =>
-                        prev.includes(taxon)
-                          ? prev.filter((t) => t !== taxon)
-                          : [...prev, taxon]
-                      );
-                    }}
-                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTaxa.includes(taxon)
-                      ? 'bg-indigo-500 text-white'
-                      : 'bg-white/20 text-white border border-white/20'
-                      }`}
-                  >
-                    {taxon}
-                  </button>
-                ))}
-              </div>
+
+              {/* Sort but always keep "All Taxa" first */}
+              {['All Taxa', ...allTaxa.filter(t => t !== 'All Taxa').sort()].map((taxon) => (
+                <button
+                  key={taxon}
+                  onClick={() => {
+                    setSelectedTaxa((prev) =>
+                      prev.includes(taxon)
+                        ? prev.filter((t) => t !== taxon)
+                        : [...prev, taxon]
+                    );
+                  }}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTaxa.includes(taxon)
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white/20 text-white border border-white/20'
+                    }`}
+                >
+                  {taxon}
+                </button>
+              ))}
             </div>
           </div>
-
         </div>
+
+      </div>
     </aside>
   );
 }

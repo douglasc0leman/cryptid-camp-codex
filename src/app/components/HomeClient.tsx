@@ -249,76 +249,78 @@ export default function HomeClient() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-gray-800 relative">
       {/* Separate background for the sidebar */}
-      <div
-        className={`fixed md:static top-0 left-0 z-90 transition-transform duration-300 md:translate-x-0 w-64 md:w-auto bg-white md:bg-transparent h-full overflow-y-auto w-64 z-80 h-screen bg-repeat-y z-0 md:static md:h-auto
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-          ${!isSidebarOpen && 'pointer-events-none md:pointer-events-auto'}`}
-        style={{
-          backgroundImage: "url('/images/sidebar-bg.png')",
-        }}
+{/* ✅ MOBILE SIDEBAR */}
+{isMobile && (
+  <div
+    className={`fixed top-0 left-0 z-50 w-64 h-screen bg-white bg-repeat-y transition-transform duration-300 ${
+      isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+    }`}
+    style={{ backgroundImage: "url('/images/sidebar-bg.png')" }}
+  >
+    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
+    <div className="relative z-20 h-full overflow-y-auto">
+      <Sidebar
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        selectedCabin={selectedCabin}
+        setSelectedCabin={setSelectedCabin}
+        selectedRarity={selectedRarity}
+        setSelectedRarity={setSelectedRarity}
+        selectedTaxa={selectedTaxa}
+        setSelectedTaxa={setSelectedTaxa}
+        searchQuery={inputValue}
+        setSearchQuery={setInputValue}
+        costRange={costRange}
+        setCostRange={setCostRange}
+        onClearFilters={clearFilters}
+        selectedWeather={selectedWeather}
+        setSelectedWeather={setSelectedWeather}
+        searchEffectQuery={searchEffectQuery}
+        setSearchEffectQuery={setSearchEffectQuery}
+        selectedTraits={selectedTraits}
+        setSelectedTraits={setSelectedTraits}
+        selectedSet={selectedSet}
+        setSelectedSet={setSelectedSet}
+      />
+    </div>
+  </div>
+)}
 
-      >
-      {isMobile ? (
-        <div className="relative min-h-screen">
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
-          <div className="relative z-20">
-          <Sidebar
-            selectedType={selectedType}
-            setSelectedType={setSelectedType}
-            selectedCabin={selectedCabin}
-            setSelectedCabin={setSelectedCabin}
-            selectedRarity={selectedRarity}
-            setSelectedRarity={setSelectedRarity}
-            selectedTaxa={selectedTaxa}
-            setSelectedTaxa={setSelectedTaxa}
-            searchQuery={inputValue}
-            setSearchQuery={setInputValue}
-            costRange={costRange}
-            setCostRange={setCostRange}
-            onClearFilters={clearFilters}
-            selectedWeather={selectedWeather}
-            setSelectedWeather={setSelectedWeather}
-            searchEffectQuery={searchEffectQuery}
-            setSearchEffectQuery={setSearchEffectQuery}
-            selectedTraits={selectedTraits}
-            setSelectedTraits={setSelectedTraits}
-            selectedSet={selectedSet}
-            setSelectedSet={setSelectedSet}
-          />
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
-          <div className="relative z-20">
-          <Sidebar
-            selectedType={selectedType}
-            setSelectedType={setSelectedType}
-            selectedCabin={selectedCabin}
-            setSelectedCabin={setSelectedCabin}
-            selectedRarity={selectedRarity}
-            setSelectedRarity={setSelectedRarity}
-            selectedTaxa={selectedTaxa}
-            setSelectedTaxa={setSelectedTaxa}
-            searchQuery={inputValue}
-            setSearchQuery={setInputValue}
-            costRange={costRange}
-            setCostRange={setCostRange}
-            onClearFilters={clearFilters}
-            selectedWeather={selectedWeather}
-            setSelectedWeather={setSelectedWeather}
-            searchEffectQuery={searchEffectQuery}
-            setSearchEffectQuery={setSearchEffectQuery}
-            selectedTraits={selectedTraits}
-            setSelectedTraits={setSelectedTraits}
-            selectedSet={selectedSet}
-            setSelectedSet={setSelectedSet}
-          />
-          </div>
-        </>
-      )}
+{/* ✅ DESKTOP SIDEBAR */}
+{!isMobile && (
+  <div
+    className="fixed top-0 left-0 w-64 h-screen z-30 bg-white bg-repeat-y border-r border-gray-200"
+    style={{ backgroundImage: "url('/images/sidebar-bg.png')" }}
+  >
+    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
+    <div className="relative z-20 h-full">
+      <Sidebar
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        selectedCabin={selectedCabin}
+        setSelectedCabin={setSelectedCabin}
+        selectedRarity={selectedRarity}
+        setSelectedRarity={setSelectedRarity}
+        selectedTaxa={selectedTaxa}
+        setSelectedTaxa={setSelectedTaxa}
+        searchQuery={inputValue}
+        setSearchQuery={setInputValue}
+        costRange={costRange}
+        setCostRange={setCostRange}
+        onClearFilters={clearFilters}
+        selectedWeather={selectedWeather}
+        setSelectedWeather={setSelectedWeather}
+        searchEffectQuery={searchEffectQuery}
+        setSearchEffectQuery={setSearchEffectQuery}
+        selectedTraits={selectedTraits}
+        setSelectedTraits={setSelectedTraits}
+        selectedSet={selectedSet}
+        setSelectedSet={setSelectedSet}
+      />
+    </div>
+  </div>
+)}
 
-      </div>
 
       <header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-40">
         <h1 className="text-xl font-bold">Cryptid Camp Codex</h1>
@@ -333,12 +335,14 @@ export default function HomeClient() {
         </button>
       </header>
 
-      <main className="flex-1 relative overflow-y-auto pt-16"
-        onClick={() => {
-          if (window.innerWidth < 768 && isSidebarOpen) {
-            setIsSidebarOpen(false);
-          }
-        }}>
+      <div
+  className={`flex-1 relative overflow-y-auto pt-16 ${!isMobile ? 'ml-64' : ''}`}
+  onClick={() => {
+    if (window.innerWidth < 768 && isSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+  }}
+>
         <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/cardgrid-bg.png')" }} />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-10" />
 
@@ -380,7 +384,7 @@ export default function HomeClient() {
             </>
           )}
         </div>
-      </main>
+      </div>
 
       {isRoutingToCard && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">

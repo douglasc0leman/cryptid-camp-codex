@@ -5,11 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CryptidCampCard } from '@/app/types/Card';
-import { Search } from 'lucide-react';
+import { ArrowUp, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { cabinColorMap } from '../utils/cabinStyles';
+import { useIsMobile } from '@/hooks/useIsMobile';
+
 
 export default function CardDetail({ card }: { card: CryptidCampCard }) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchParams = useSearchParams();
   const cabinKey = card.cabin?.toLowerCase() ?? '';
@@ -108,6 +111,51 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
   const isLandscape = card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'));
 
+  const renderNavButtons = () => (
+    <div className="pt-6 pb-4 flex justify-center gap-4 flex-wrap">
+      {prevCardId && (
+        <Link
+          href={`/card/${prevCardId}?${cleanQuery.toString()}`}
+          className={`px-4 py-2 rounded-md font-semibold text-sm shadow flex items-center gap-2 ${
+            needsDarkText
+              ? 'bg-gray-800 text-white hover:bg-gray-700'
+              : 'bg-white/10 text-white hover:bg-white/20'
+          }`}
+        >
+          <ChevronLeft className="w-5 h-5" />
+          {!isMobile && 'Previous'}
+        </Link>
+      )}
+  
+      <Link
+        href={backToCodexQuery ? `/?${backToCodexQuery}` : '/'}
+        className={`px-6 py-2 rounded-md font-semibold text-sm shadow flex items-center gap-2 ${
+          needsDarkText
+            ? 'bg-gray-800 text-white hover:bg-gray-700'
+            : 'bg-white/10 text-white hover:bg-white/20'
+        }`}
+      >
+        <ArrowUp className="w-5 h-5" />
+        {isMobile ? 'Back' : 'Back to Codex'}
+      </Link>
+  
+      {nextCardId && (
+        <Link
+          href={`/card/${nextCardId}?${cleanQuery.toString()}`}
+          className={`px-4 py-2 rounded-md font-semibold text-sm shadow flex items-center gap-2 ${
+            needsDarkText
+              ? 'bg-gray-800 text-white hover:bg-gray-700'
+              : 'bg-white/10 text-white hover:bg-white/20'
+          }`}
+        >
+          {!isMobile && 'Next'}
+          <ChevronRight className="w-5 h-5" />
+        </Link>
+      )}
+    </div>
+  );
+  
+
   return (
     <div className="min-h-screen relative bg-gray-100 p-6 md:p-12 overflow-hidden">
       <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/cardgrid-bg.png')" }} />
@@ -115,6 +163,10 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
       <div className={`relative z-20 max-w-6xl mx-auto shadow-md rounded-lg overflow-hidden md:flex ${textClass}`} style={{ background: bg }}>
         {/* Left - Image */}
+
+        {isMobile && renderNavButtons()}
+
+
         <div className={`p-6 flex items-center justify-center border-r border-gray-200 ${isLandscape ? 'md:w-[48%]' : 'md:w-1/3'}`}>
           <button onClick={() => setIsModalOpen(true)} className="focus:outline-none">
             <div
@@ -146,6 +198,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
         {/* Right - Details */}
         <div className="md:w-2/3 p-6 flex flex-col gap-4">
+
           {/* Mobile Badge */}
           {badgeSrc && (
             <div className="flex md:hidden flex-col items-center">
@@ -269,31 +322,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
             </div>
           )}
 
-          {/* Back Button */}
-          <div className="pt-10 pb-4 flex justify-center gap-4 flex-wrap">
-            {prevCardId && (
-              <Link
-              href={`/card/${prevCardId}?${cleanQuery.toString()}`}
-                className={`px-4 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
-              >
-                ← Previous
-              </Link>
-            )}
-            <Link
-              href={backToCodexQuery ? `/?${backToCodexQuery}` : '/'}
-              className={`px-6 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
-            >
-              ↑ Back to Codex
-            </Link>
-            {nextCardId && (
-              <Link
-                href={`/card/${nextCardId}?${cleanQuery.toString()}`}
-                className={`px-4 py-2 rounded-md font-semibold text-sm shadow ${needsDarkText ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
-              >
-                Next →
-              </Link>
-            )}
-          </div>
+        {renderNavButtons()}
 
         </div>
 

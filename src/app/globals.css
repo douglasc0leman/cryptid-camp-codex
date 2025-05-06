@@ -72,3 +72,18 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.7);
 }
+
+@keyframes floatPulse {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    transform: translateY(-3px);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+  }
+}
+
+.animate-float-pulse {
+  animation: floatPulse 2.5s ease-in-out infinite;
+}

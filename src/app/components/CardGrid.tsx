@@ -3,8 +3,8 @@
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { CryptidCampCard } from '../types/Card'
-import { getCardArtUrl } from '../utils/getCroppedArt'
 import { cabinColorMap } from '../utils/cabinStyles'
+import { useState } from 'react'
 
 export default function CardGrid({
   cards,
@@ -28,12 +28,11 @@ export default function CardGrid({
   }
 }) {
   const router = useRouter()
-
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  
   const handleCardClick = (card: CryptidCampCard) => {
     const cabinKey = card.cabin?.toLowerCase() ?? ''
-
     const queryParams = new URLSearchParams()
-
     if (filters.type) queryParams.set('type', filters.type)
     if (filters.cabin) queryParams.set('cabin', filters.cabin)
     if (filters.rarity) queryParams.set('rarity', filters.rarity)
@@ -46,7 +45,6 @@ export default function CardGrid({
     queryParams.set('costMin', String(filters.costRange[0]))
     queryParams.set('costMax', String(filters.costRange[1]))
     queryParams.set('bg', cabinKey)
-
     const path = `/card/${card.id}?${queryParams.toString()}`
 
     onCardClickStart()
@@ -56,6 +54,12 @@ export default function CardGrid({
     }
 
     router.push(path)
+  }
+
+  function getOptimizedCloudinaryUrl(originalUrl: string, width = 300) {
+    if (!originalUrl.includes('res.cloudinary.com')) return originalUrl;
+  
+    return originalUrl.replace('/upload/', `/upload/w_${width},f_auto,q_auto/`);
   }
 
   return (
@@ -72,38 +76,41 @@ export default function CardGrid({
         const shouldRotate =
           card.is_trail || (card.is_supply && card.name.toLowerCase().includes('cabin'))
 
-        return (
-<div
-  key={card.id}
-  onClick={() => handleCardClick(card)}
-  className={`relative transition-transform duration-300 ease-in-out w-full aspect-[2/3] flex flex-col cursor-pointer p-2 rounded shadow hover:shadow-lg hover:scale-105 ${
-    shouldRotate ? 'hover:rotate-[-90deg] hover:z-[1000]' : ''
-  }`}
-  style={{
-    background: bg,
-    transformOrigin: 'center center',
-  }}
->
-
-            <div className="relative w-full h-full rounded overflow-hidden bg-gray-100 flex items-center justify-center">
-              {card.watermark_url ? (
-                <Image
-                  src={card.watermark_url}
-                  alt={card.name}
-                  fill
-                  unoptimized
-                  className="object-cover"
-                  sizes="100vw"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                  No Image
-                </div>
-              )}
+          return (
+            <div
+              key={card.id}
+              onClick={() => handleCardClick(card)}
+              className={`relative transition-transform duration-300 ease-in-out w-full aspect-[2/3] flex flex-col cursor-pointer p-2 rounded shadow hover:shadow-lg hover:scale-105 ${
+                shouldRotate ? 'hover:rotate-[-90deg] hover:z-[1000]' : ''
+              }`}
+              style={{
+                background: bg,
+                transformOrigin: 'center center',
+              }}
+            >
+              <div className="relative w-full h-full rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+                {!isImageLoaded && (
+                        <div className="w-full h-[320px] flex flex-col p-2 rounded shadow bg-gray-200 animate-pulse">
+                        <div className="w-full h-[220px] rounded bg-gray-300 mb-2" />
+                        <div className="h-4 w-3/4 bg-gray-300 rounded mb-2" />
+                        <div className="h-3 w-1/2 bg-gray-300 rounded" />
+                      </div>
+                )}
+                {card.watermark_url && (
+                  <Image
+                    src={getOptimizedCloudinaryUrl(card.watermark_url, 300)}
+                    alt={card.name}
+                    fill
+                    unoptimized
+                    className={`object-cover transition-opacity duration-300 ${
+                      isImageLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    onLoad={() => setIsImageLoaded(true)}
+                  />
+                )}
+              </div>
             </div>
-
-          </div>
-        )
+          );
       })}
     </div>
   )
