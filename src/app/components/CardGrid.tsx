@@ -68,9 +68,8 @@ export default function CardGrid({
       style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
       {cards.map((card) => {
         const cabinKey = card.cabin?.toLowerCase() ?? ''
-        const { bg, text } = cabinColorMap[cabinKey] || {
-          bg: '#e2e8f0',
-          text: 'text-gray-900',
+        const { bg } = cabinColorMap[cabinKey] || {
+          bg: '#e2e8f0'
         }
 
         const shouldRotate =

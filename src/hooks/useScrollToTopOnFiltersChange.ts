@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-export function useScrollToTopOnFiltersChange(filters: Record<string, any>) {
+export function useScrollToTopOnFiltersChange(filters: Record<string, unknown>) {
   const firstRenderRef = useRef(true)
 
   useEffect(() => {
