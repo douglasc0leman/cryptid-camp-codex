@@ -2,30 +2,34 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Range } from 'react-range';
+import { SortOption } from '../types/SortOption';
 
 type Props = {
-  selectedType: string;
-  setSelectedType: (value: string) => void;
-  selectedCabin: string;
-  setSelectedCabin: (value: string) => void;
-  selectedRarity: string;
-  setSelectedRarity: (value: string) => void;
+  selectedType: string[];
+  setSelectedType: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedCabin: string[];
+  setSelectedCabin: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedRarity: string[];
+  setSelectedRarity: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedSet: string[];
+  setSelectedSet: React.Dispatch<React.SetStateAction<string[]>>;
   selectedTaxa: string[];
   setSelectedTaxa: React.Dispatch<React.SetStateAction<string[]>>;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
+  searchMode: 'name' | 'effect' | 'both';
+  setSearchMode: (value: 'name' | 'effect' | 'both') => void;
   costRange: [number, number];
   setCostRange: React.Dispatch<React.SetStateAction<[number, number]>>;
   onClearFilters: () => void;
   selectedWeather: string[];
   setSelectedWeather: React.Dispatch<React.SetStateAction<string[]>>;
-  searchEffectQuery: string;
-  setSearchEffectQuery: (value: string) => void;
   selectedTraits: string[];
   setSelectedTraits: React.Dispatch<React.SetStateAction<string[]>>;
-  selectedSet: string;
-  setSelectedSet: (value: string) => void;
+  sortOption: string;
+  setSortOption: (value: SortOption) => void;
 };
 const setOptions = ['Base Set', '2024 Christmas', "2025 Valentine's Day", '2152 Monthly Promos'];
 const weatherConditions = ['Clear Sky', 'Fog', 'Day', 'Night', 'Heat', 'Rain', 'Storm', 'Calm'];
@@ -50,23 +54,44 @@ export default function Sidebar({
   setSelectedCabin,
   selectedRarity,
   setSelectedRarity,
+  selectedSet,
+  setSelectedSet,
   selectedTaxa,
   setSelectedTaxa,
   searchQuery,
   setSearchQuery,
+  searchMode,
+  setSearchMode,
   costRange,
   setCostRange,
   onClearFilters,
   selectedWeather,
   setSelectedWeather,
-  searchEffectQuery,
-  setSearchEffectQuery,
   selectedTraits,
   setSelectedTraits,
-  selectedSet,
-  setSelectedSet
+  sortOption,
+  setSortOption
 }: Props) {
-  const hasActiveFilters = selectedType || selectedSet || selectedCabin || selectedRarity || selectedTraits.length > 0 || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || searchEffectQuery || costRange[0] !== 0 || costRange[1] !== 6;
+  const hasActiveFilters = selectedType.length > 0 || selectedSet.length > 0 || selectedCabin.length > 0 || selectedRarity.length > 0 || selectedTraits.length > 0 || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || costRange[0] !== 0 || costRange[1] !== 6;
+
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [isCabinOpen, setIsCabinOpen] = useState(false);
+  const [isRarityOpen, setIsRarityOpen] = useState(false);
+  const [isSetOpen, setIsSetOpen] = useState(false);
+  const [isTraitsOpen, setIsTraitsOpen] = useState(false);
+  const [isWeatherOpen, setIsWeatherOpen] = useState(false);
+  const [isTaxaOpen, setIsTaxaOpen] = useState(false);
+
+  // Auto-expand based on active filters
+  useEffect(() => {
+    if (selectedType.length > 0) setIsTypeOpen(true);
+    if (selectedCabin.length > 0) setIsCabinOpen(true);
+    if (selectedRarity.length > 0) setIsRarityOpen(true);
+    if (selectedSet.length > 0) setIsSetOpen(true);
+    if (selectedTraits.length > 0) setIsTraitsOpen(true);
+    if (selectedWeather.length > 0) setIsWeatherOpen(true);
+    if (selectedTaxa.length > 0) setIsTaxaOpen(true);
+  }, [selectedType, selectedCabin, selectedRarity, selectedSet, selectedTraits, selectedWeather, selectedTaxa]);
 
   return (
     <aside className="relative min-h-screen w-full max-w-[16rem]">
@@ -102,179 +127,61 @@ export default function Sidebar({
           </div>
         )}
 
+        {/* Sort Control */}
+        <div className='text-white mb-6 px-4'>
+          <label htmlFor="sort" className="text-sm font-medium block mb-1">Sort By</label>
+          <select
+            id="sort"
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value as SortOption)}
+            className="w-full border p-2 rounded bg-white text-gray-900 text-sm"
+          >
+            <option value="name_asc">Name A–Z</option>
+            <option value="name_desc">Name Z–A</option>
+            <option value="cost_asc">Cost Low → High</option>
+            <option value="cost_desc">Cost High → Low</option>
+            <option value="set_number_asc">Set Number Low → High</option>
+            <option value="set_number_desc">Set Number High → Low</option>
+          </select>
+        </div>
+
         <div className="px-4 pb-4 space-y-6 text-white md:overflow-y-auto md:max-h-[calc(100vh-4rem)] flex-1 custom-scrollbar">
-          {/* Search by Name */}
+          {/* Search Bar */}
           <div className="relative">
-            <label htmlFor="search" className="block text-sm font-medium mb-1">Search by Name</label>
-            <input
-              id="search"
-              type="text"
-              placeholder="e.g. Mothman"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-200 text-sm text-gray-800"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-[34px] text-gray-500 hover:text-red-500"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          {/* Search by Effect */}
-          <div className="relative">
-            <label htmlFor="effectSearch" className="block text-sm font-medium mb-1">Search by Effect</label>
-            <input
-              id="effectSearch"
-              type="text"
-              placeholder="e.g. Draw 2"
-              value={searchEffectQuery}
-              onChange={(e) => setSearchEffectQuery(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-200 text-sm text-gray-800"
-            />
-            {searchEffectQuery && (
-              <button
-                onClick={() => setSearchEffectQuery('')}
-                className="absolute right-2 top-[34px] text-gray-500 hover:text-red-500"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          {/* Type Filter */}
-          <div className="relative">
-            <label htmlFor="type" className="block text-sm font-medium mb-1">Filter by Type</label>
-            <div className="relative flex items-center">
-              <select
-                id="type"
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-              >
-                <option value="">All</option>
-                {typeOptions.map((type) => (
-                  <option key={type} value={type.toLowerCase()}>
-                    {type}
-                  </option>
+            <div className="flex justify-between items-center mb-1 gap-2">
+              <label htmlFor="combinedSearch" className="text-sm font-medium whitespace-nowrap">Search by</label>
+              <div className="flex gap-1 flex-wrap">
+                {['name', 'effect', 'both'].map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setSearchMode(mode as 'name' | 'effect' | 'both')}
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition duration-200 ${searchMode === mode
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
                 ))}
-              </select>
-
-              {selectedType ? (
-                <button
-                  onClick={() => setSelectedType('')}
-                  className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
-                >
-                  ×
-                </button>
-              ) : (
-                <div className="pointer-events-none absolute right-3 text-gray-500 text-xl">
-                  ↓
-                </div>
-              )}
+              </div>
             </div>
-          </div>
 
-
-          {/* Cabin Filter */}
-          <div className="relative">
-            <label htmlFor="cabin" className="block text-sm font-medium mb-1">Filter by Cabin</label>
-            <div className="relative flex items-center">
-              <select
-                id="cabin"
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none"
-                value={selectedCabin}
-                onChange={(e) => setSelectedCabin(e.target.value)}
-              >
-                <option value="">All</option>
-                {cabinOptions.map((cabin) => (
-                  <option key={cabin} value={cabin.toLowerCase()}>
-                    {cabin}
-                  </option>
-                ))}
-              </select>
-
-              {selectedCabin ? (
-                <button
-                  onClick={() => setSelectedCabin('')}
-                  className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
-                >
-                  ×
-                </button>
-              ) : (
-                <div className="pointer-events-none absolute right-3 text-gray-500 text-xl">
-                  ↓
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Rarity Filter */}
-          <div className="relative">
-            <label htmlFor="rarity" className="block text-sm font-medium mb-1">Filter by Rarity</label>
-            <div className="relative flex items-center">
-              <select
-                id="rarity"
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none"
-                value={selectedRarity}
-                onChange={(e) => setSelectedRarity(e.target.value)}
-              >
-                <option value="">All</option>
-                {rarityOptions.map((rarity) => (
-                  <option key={rarity} value={rarity.toLowerCase()}>
-                    {rarity}
-                  </option>
-                ))}
-              </select>
-
-              {selectedRarity ? (
-                <button
-                  onClick={() => setSelectedRarity('')}
-                  className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
-                >
-                  ×
-                </button>
-              ) : (
-                <div className="pointer-events-none absolute right-3 text-gray-500 text-xl">
-                  ↓
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Set Filter */}
-          <div className="relative">
-            <label htmlFor="set" className="block text-sm font-medium mb-1">Filter by Set</label>
-            <div className="relative flex items-center">
-              <select
-                id="set"
-                className="w-full border p-2 pr-10 rounded bg-white text-gray-900 appearance-none"
-                value={selectedSet}
-                onChange={(e) => setSelectedSet(e.target.value)}
-              >
-                <option value="">All</option>
-                {setOptions.map((setName) => (
-                  <option key={setName} value={setName}>
-                    {setName}
-                  </option>
-                ))}
-              </select>
-
-              {selectedSet ? (
-                <button
-                  onClick={() => setSelectedSet('')}
-                  className="absolute right-3 text-gray-500 hover:text-red-500 text-xl"
-                >
-                  ×
-                </button>
-              ) : (
-                <div className="pointer-events-none absolute right-3 text-gray-500 text-xl">
-                  ↓
-                </div>
-              )}
+            <div className="flex gap-2 items-center mt-3">
+              <input
+                id="combinedSearch"
+                type="text"
+                placeholder={
+                  searchMode === 'name'
+                    ? 'e.g. Mothman'
+                    : searchMode === 'effect'
+                      ? 'e.g. Draw 2'
+                      : 'e.g. Mothman or Draw 2'
+                }
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-200 text-sm text-gray-800"
+              />
             </div>
           </div>
 
@@ -321,106 +228,270 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Traits Filter */}
+
+          {/* Type Filter */}
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium">Filter by Traits</label>
-              {selectedTraits.length > 0 && (
-                <button onClick={() => setSelectedTraits([])} className="text-xs text-red-400 hover:text-red-600">
-                  Clear
-                </button>
-              )}
+            <div className="flex justify-between items-center mb-2 cursor-pointer" onClick={() => setIsTypeOpen(!isTypeOpen)}>
+              <label className="text-sm font-medium">Filter by Type</label>
+              <div className="flex items-center gap-2">
+                {selectedType.length > 0 && (
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedType([]); }} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+                )}
+                <span className="text-sm">{isTypeOpen ? '−' : '+'}</span>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
-              {[...traitOptions].sort().map((trait) => (
-                <button
-                  key={trait}
-                  onClick={() => {
-                    setSelectedTraits((prev) =>
-                      prev.includes(trait)
-                        ? prev.filter((t) => t !== trait)
-                        : [...prev, trait]
-                    );
-                  }}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTraits.includes(trait)
-                    ? 'bg-indigo-500 text-white'
-                    : 'bg-white/20 text-white border border-white/20'
-                    }`}
-                >
-                  {trait}
-                </button>
-              ))}
+            {isTypeOpen && (
+              <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
+                {typeOptions.map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      setSelectedType((prev) =>
+                        prev.includes(type.toLowerCase())
+                          ? prev.filter((t) => t !== type.toLowerCase())
+                          : [...prev, type.toLowerCase()]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedType.includes(type.toLowerCase())
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+
+
+          {/* Cabin Filter */}
+          <div>
+            <div className="flex justify-between items-center mb-2 cursor-pointer" onClick={() => setIsCabinOpen(!isCabinOpen)}>
+              <label className="text-sm font-medium">Filter by Cabin</label>
+              <div className="flex items-center gap-2">
+                {selectedCabin.length > 0 && (
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedCabin([]); }} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+                )}
+                <span className="text-sm">{isCabinOpen ? '−' : '+'}</span>
+              </div>
             </div>
+
+            {isCabinOpen && (
+              <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
+                {cabinOptions.map((cabin) => (
+                  <button
+                    key={cabin}
+                    onClick={() => {
+                      setSelectedCabin((prev) =>
+                        prev.includes(cabin.toLowerCase())
+                          ? prev.filter((t) => t !== cabin.toLowerCase())
+                          : [...prev, cabin.toLowerCase()]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedCabin.includes(cabin.toLowerCase())
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {cabin}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+
+          {/* Rarity Filter */}
+          <div>
+            <div className="flex justify-between items-center mb-2 cursor-pointer" onClick={() => setIsRarityOpen(!isRarityOpen)}>
+              <label className="text-sm font-medium">Filter by Rarity</label>
+              <div className="flex items-center gap-2">
+                {selectedRarity.length > 0 && (
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedRarity([]); }} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+                )}
+                <span className="text-sm">{isRarityOpen ? '−' : '+'}</span>
+              </div>
+            </div>
+
+            {isRarityOpen && (
+              <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
+                {rarityOptions.map((rarity) => (
+                  <button
+                    key={rarity}
+                    onClick={() => {
+                      setSelectedRarity((prev) =>
+                        prev.includes(rarity.toLowerCase())
+                          ? prev.filter((t) => t !== rarity.toLowerCase())
+                          : [...prev, rarity.toLowerCase()]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedRarity.includes(rarity.toLowerCase())
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {rarity}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+
+          {/* Set Filter */}
+          <div>
+            <div className="flex justify-between items-center mb-2 cursor-pointer" onClick={() => setIsSetOpen(!isSetOpen)}>
+              <label className="text-sm font-medium">Filter by Set</label>
+              <div className="flex items-center gap-2">
+                {selectedSet.length > 0 && (
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedSet([]); }} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+                )}
+                <span className="text-sm">{isSetOpen ? '−' : '+'}</span>
+              </div>
+            </div>
+
+            {isSetOpen && (
+              <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
+                {setOptions.map((setName) => (
+                  <button
+                    key={setName}
+                    onClick={() => {
+                      setSelectedSet((prev) =>
+                        prev.includes(setName)
+                          ? prev.filter((s) => s !== setName)
+                          : [...prev, setName]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedSet.includes(setName)
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {setName}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Traits Filter */}
+          <div>
+            <div className="flex justify-between items-center mb-2 cursor-pointer" onClick={() => setIsTraitsOpen(!isTraitsOpen)}>
+              <label className="text-sm font-medium">Filter by Traits</label>
+              <div className="flex items-center gap-2">
+                {selectedTraits.length > 0 && (
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedTraits([]); }} className="text-xs text-red-400 hover:text-red-600">
+                    Clear
+                  </button>
+                )}
+                <span className="text-sm">{isTraitsOpen ? '−' : '+'}</span>
+              </div>
+            </div>
+
+            {isTraitsOpen && (
+              <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
+                {[...traitOptions].sort().map((trait) => (
+                  <button
+                    key={trait}
+                    onClick={() => {
+                      setSelectedTraits((prev) =>
+                        prev.includes(trait)
+                          ? prev.filter((t) => t !== trait)
+                          : [...prev, trait]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTraits.includes(trait)
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {trait}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
 
           {/* Weather Filter */}
           <div>
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-2 cursor-pointer" onClick={() => setIsWeatherOpen(!isWeatherOpen)}>
               <label className="text-sm font-medium">Filter by Weather</label>
-              {selectedWeather.length > 0 && (
-                <button onClick={() => setSelectedWeather([])} className="text-xs text-red-400 hover:text-red-600">
-                  Clear
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {selectedWeather.length > 0 && (
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedWeather([]); }} className="text-xs text-red-400 hover:text-red-600">
+                    Clear
+                  </button>
+                )}
+                <span className="text-sm">{isWeatherOpen ? '−' : '+'}</span>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  max-h-64 overflow-y-auto">
-              {[...weatherConditions].sort().map((weather) => (
-                <button
-                  key={weather}
-                  onClick={() => {
-                    setSelectedWeather((prev) =>
-                      prev.includes(weather)
-                        ? prev.filter((w) => w !== weather)
-                        : [...prev, weather]
-                    );
-                  }}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedWeather.includes(weather)
-                    ? 'bg-indigo-500 text-white'
-                    : 'bg-white/20 text-white border border-white/20'
-                    }`}
-                >
-                  {weather}
-                </button>
-              ))}
-            </div>
+            {isWeatherOpen && (
+              <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
+                {[...weatherConditions].sort().map((weather) => (
+                  <button
+                    key={weather}
+                    onClick={() => {
+                      setSelectedWeather((prev) =>
+                        prev.includes(weather)
+                          ? prev.filter((t) => t !== weather)
+                          : [...prev, weather]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedWeather.includes(weather)
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {weather}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Taxa Filter */}
           <div>
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-2 cursor-pointer" onClick={() => setIsTaxaOpen(!isTaxaOpen)}>
               <label className="text-sm font-medium">Filter by Taxa</label>
-              {selectedTaxa.length > 0 && (
-                <button onClick={() => setSelectedTaxa([])} className="text-xs text-red-400 hover:text-red-600">
-                  Clear
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {selectedTaxa.length > 0 && (
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedTaxa([]); }} className="text-xs text-red-400 hover:text-red-600">
+                    Clear
+                  </button>
+                )}
+                <span className="text-sm">{isTaxaOpen ? '−' : '+'}</span>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded  overflow-y-auto custom-scrollbar">
 
-              {/* Sort but always keep "All Taxa" first */}
-              {['All Taxa', ...allTaxa.filter(t => t !== 'All Taxa').sort()].map((taxon) => (
-                <button
-                  key={taxon}
-                  onClick={() => {
-                    setSelectedTaxa((prev) =>
-                      prev.includes(taxon)
-                        ? prev.filter((t) => t !== taxon)
-                        : [...prev, taxon]
-                    );
-                  }}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTaxa.includes(taxon)
-                    ? 'bg-indigo-500 text-white'
-                    : 'bg-white/20 text-white border border-white/20'
-                    }`}
-                >
-                  {taxon}
-                </button>
-              ))}
-            </div>
+            {isTaxaOpen && (
+              <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
+                {['All Taxa', ...allTaxa.filter(t => t !== 'All Taxa').sort()].map((taxon) => (
+                  <button
+                    key={taxon}
+                    onClick={() => {
+                      setSelectedTaxa((prev) =>
+                        prev.includes(taxon)
+                          ? prev.filter((t) => t !== taxon)
+                          : [...prev, taxon]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedTaxa.includes(taxon)
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {taxon}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
         </div>
 
       </div>

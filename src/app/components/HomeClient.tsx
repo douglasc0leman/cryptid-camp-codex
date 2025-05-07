@@ -23,18 +23,17 @@ export default function HomeClient() {
   const [isRoutingToCard, setIsRoutingToCard] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const [selectedType, setSelectedType] = useState('');
-  const [selectedCabin, setSelectedCabin] = useState('');
-  const [selectedRarity, setSelectedRarity] = useState('');
-  const [selectedSet, setSelectedSet] = useState('');
+  const [selectedType, setSelectedType] = useState<string[]>([]);
+  const [selectedCabin, setSelectedCabin] = useState<string[]>([]);
+  const [selectedRarity, setSelectedRarity] = useState<string[]>([]);
+  const [selectedSet, setSelectedSet] = useState<string[]>([]);
   const [selectedTaxa, setSelectedTaxa] = useState<string[]>([]);
   const [selectedWeather, setSelectedWeather] = useState<string[]>([]);
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
 
-  const [inputValue, setInputValue] = useState('');
-  const debouncedInputValue = useDebounce(inputValue, 400);
-  const [searchEffectQuery, setSearchEffectQuery] = useState('');
-  const debouncedEffectInput = useDebounce(searchEffectQuery, 400);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<'name' | 'effect' | 'both'>('both');
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
 
   const [costRange, setCostRange] = useState<[number, number]>([0, 6]);
 
@@ -46,14 +45,15 @@ export default function HomeClient() {
     taxa: selectedTaxa,
     weather: selectedWeather,
     traits: selectedTraits,
-    search: inputValue,
-    effect: searchEffectQuery,
+    search: searchQuery,
     costRange,
   };
 
   useScrollToTopOnFiltersChange(filters);
 
   const itemsPerPage = 12;
+  const [sortOption, setSortOption] = useState<'name_asc' | 'name_desc' | 'cost_asc' | 'cost_desc' | 'set_number_asc' | 'set_number_desc'>('name_asc');
+
   const loaderRef = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -65,15 +65,14 @@ export default function HomeClient() {
   const spinnerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const type = searchParams.get('type') || '';
-    const cabin = searchParams.get('cabin') || '';
-    const rarity = searchParams.get('rarity') || '';
-    const set = searchParams.get('set') || '';
+    const type = searchParams.get('type')?.split(',') || [];
+    const cabin = searchParams.get('cabin')?.split(',') || [];
+    const rarity = searchParams.get('rarity')?.split(',') || [];
+    const set = searchParams.get('set')?.split(',') || [];
     const taxa = searchParams.get('taxa')?.split(',') || [];
     const weather = searchParams.get('weather')?.split(',') || [];
     const traits = searchParams.get('traits')?.split(',') || [];
     const search = searchParams.get('search') || '';
-    const effect = searchParams.get('effect') || '';
     const costMin = Number(searchParams.get('costMin') || '0');
     const costMax = Number(searchParams.get('costMax') || '6');
     setSelectedType(type);
@@ -83,8 +82,7 @@ export default function HomeClient() {
     setSelectedTaxa(taxa);
     setSelectedWeather(weather);
     setSelectedTraits(traits);
-    setInputValue(search);
-    setSearchEffectQuery(effect);
+    setSearchQuery(search);
     setCostRange([costMin, costMax]);
     setFiltersLoaded(true);
   }, [searchParams]);
@@ -93,15 +91,15 @@ export default function HomeClient() {
     if (!filtersLoaded) return;
 
     const params = new URLSearchParams();
-    if (selectedType) params.set('type', selectedType);
-    if (selectedCabin) params.set('cabin', selectedCabin);
-    if (selectedRarity) params.set('rarity', selectedRarity);
-    if (selectedSet) params.set('set', selectedSet);
+    if (selectedType.length > 0) params.set('type', selectedType.join(','));
+    if (selectedCabin.length > 0) params.set('cabin', selectedCabin.join(','));
+    if (selectedRarity.length > 0) params.set('rarity', selectedRarity.join(','));
+    if (selectedSet.length > 0) params.set('set', selectedSet.join(','));
     if (selectedTaxa.length > 0) params.set('taxa', selectedTaxa.join(','));
     if (selectedWeather.length > 0) params.set('weather', selectedWeather.join(','));
     if (selectedTraits.length > 0) params.set('traits', selectedTraits.join(','));
-    if (inputValue) params.set('search', inputValue);
-    if (searchEffectQuery) params.set('effect', searchEffectQuery);
+    if (searchQuery) params.set('search', searchQuery);
+    params.set('sort', sortOption);
     params.set('costMin', String(costRange[0]));
     params.set('costMax', String(costRange[1]));
 
@@ -109,7 +107,7 @@ export default function HomeClient() {
     const newUrl = queryString ? `/?${queryString}` : '/';
 
     setPendingUrlFilters(newUrl);
-  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, inputValue, searchEffectQuery, costRange]);
+  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, searchQuery, costRange]);
 
   useEffect(() => {
     if (!filtersLoaded || !debouncedUrlFilters) return;
@@ -137,7 +135,9 @@ export default function HomeClient() {
     if (isPending) return;
 
     fetchCards(true);
-  }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, costRange, debouncedInputValue, debouncedEffectInput]);
+  }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, costRange, debouncedSearchQuery || '',
+    searchMode || 'both',
+    sortOption || 'name_asc']);
 
   useEffect(() => {
     if (!loaderRef.current) return;
@@ -164,15 +164,14 @@ export default function HomeClient() {
   }, []);
 
   const clearFilters = () => {
-    setSelectedType('');
-    setSelectedCabin('');
-    setSelectedRarity('');
-    setSelectedSet('');
+    setSelectedType([]);
+    setSelectedCabin([]);
+    setSelectedRarity([]);
+    setSelectedSet([]);
     setSelectedTaxa([]);
     setSelectedWeather([]);
     setSelectedTraits([]);
-    setInputValue('');
-    setSearchEffectQuery('');
+    setSearchQuery('');
     setCostRange([0, 6]);
     setHasMore(true);
     setOffset(0);
@@ -203,22 +202,24 @@ export default function HomeClient() {
     if (selectedTaxa.length > 0) queryParams.set('taxa', selectedTaxa.join(','));
     if (selectedWeather.length > 0) queryParams.set('weather', selectedWeather.join(','));
     if (selectedTraits.length > 0) queryParams.set('traits', selectedTraits.join(','));
-    if (selectedType) queryParams.set('type', selectedType);
-    if (selectedCabin) queryParams.set('cabin', selectedCabin);
-    if (selectedRarity) queryParams.set('rarity', selectedRarity);
-    if (selectedSet) queryParams.set('set', selectedSet);
-    if (debouncedInputValue) queryParams.set('search', debouncedInputValue);
-    if (debouncedEffectInput) queryParams.set('effect', debouncedEffectInput);
+    if (selectedType.length > 0) queryParams.set('type', selectedType.join(','));
+    if (selectedCabin.length > 0) queryParams.set('cabin', selectedCabin.join(','));
+    if (selectedRarity.length > 0) queryParams.set('rarity', selectedRarity.join(','));
+    if (selectedSet.length > 0) queryParams.set('set', selectedSet.join(','));
+    if (debouncedSearchQuery) {
+      if (searchMode === 'name') queryParams.set('search', debouncedSearchQuery);
+      else if (searchMode === 'effect') queryParams.set('effect', debouncedSearchQuery);
+      else queryParams.set('combinedSearch', debouncedSearchQuery);
+    }
 
+    queryParams.set('sort', sortOption);
     queryParams.set('costMin', String(costRange[0]));
     queryParams.set('costMax', String(costRange[1]));
 
     const res = await fetch(`/api/cards?${queryParams.toString()}`);
     const data = await res.json();
 
-    let sorted = data.sort((a: CryptidCampCard, b: CryptidCampCard) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-    );
+    let sorted = data;
 
     if (costRange[0] === 6 && costRange[1] === 6) {
       sorted = sorted.filter((card: CryptidCampCard) => card.cost === 6);
@@ -249,77 +250,80 @@ export default function HomeClient() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-gray-800 relative">
       {/* Separate background for the sidebar */}
-{/* ✅ MOBILE SIDEBAR */}
-{isMobile && (
-  <div
-    className={`fixed top-0 left-0 z-50 w-64 h-screen bg-white bg-repeat-y transition-transform duration-300 ${
-      isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-    }`}
-    style={{ backgroundImage: "url('/images/sidebar-bg.png')" }}
-  >
-    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
-    <div className="relative z-20 h-full overflow-y-auto">
-      <Sidebar
-        selectedType={selectedType}
-        setSelectedType={setSelectedType}
-        selectedCabin={selectedCabin}
-        setSelectedCabin={setSelectedCabin}
-        selectedRarity={selectedRarity}
-        setSelectedRarity={setSelectedRarity}
-        selectedTaxa={selectedTaxa}
-        setSelectedTaxa={setSelectedTaxa}
-        searchQuery={inputValue}
-        setSearchQuery={setInputValue}
-        costRange={costRange}
-        setCostRange={setCostRange}
-        onClearFilters={clearFilters}
-        selectedWeather={selectedWeather}
-        setSelectedWeather={setSelectedWeather}
-        searchEffectQuery={searchEffectQuery}
-        setSearchEffectQuery={setSearchEffectQuery}
-        selectedTraits={selectedTraits}
-        setSelectedTraits={setSelectedTraits}
-        selectedSet={selectedSet}
-        setSelectedSet={setSelectedSet}
-      />
-    </div>
-  </div>
-)}
+      {/* ✅ MOBILE SIDEBAR */}
+      {isMobile && (
+        <div
+          className={`fixed top-0 left-0 z-50 w-64 h-screen bg-white bg-repeat-y transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          style={{ backgroundImage: "url('/images/sidebar-bg.png')" }}
+        >
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
+          <div className="relative z-20 h-full overflow-y-auto">
+            <Sidebar
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
+              selectedCabin={selectedCabin}
+              setSelectedCabin={setSelectedCabin}
+              selectedRarity={selectedRarity}
+              setSelectedRarity={setSelectedRarity}
+              selectedSet={selectedSet}
+              setSelectedSet={setSelectedSet}
+              selectedTaxa={selectedTaxa}
+              setSelectedTaxa={setSelectedTaxa}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              searchMode={searchMode}
+              setSearchMode={setSearchMode}
+              costRange={costRange}
+              setCostRange={setCostRange}
+              onClearFilters={clearFilters}
+              selectedWeather={selectedWeather}
+              setSelectedWeather={setSelectedWeather}
+              selectedTraits={selectedTraits}
+              setSelectedTraits={setSelectedTraits}
+              sortOption={sortOption}
+              setSortOption={setSortOption}
+            />
+          </div>
+        </div>
+      )}
 
-{/* ✅ DESKTOP SIDEBAR */}
-{!isMobile && (
-  <div
-    className="fixed top-0 left-0 w-64 h-screen z-30 bg-white bg-repeat-y border-r border-gray-200"
-    style={{ backgroundImage: "url('/images/sidebar-bg.png')" }}
-  >
-    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
-    <div className="relative z-20 h-full">
-      <Sidebar
-        selectedType={selectedType}
-        setSelectedType={setSelectedType}
-        selectedCabin={selectedCabin}
-        setSelectedCabin={setSelectedCabin}
-        selectedRarity={selectedRarity}
-        setSelectedRarity={setSelectedRarity}
-        selectedTaxa={selectedTaxa}
-        setSelectedTaxa={setSelectedTaxa}
-        searchQuery={inputValue}
-        setSearchQuery={setInputValue}
-        costRange={costRange}
-        setCostRange={setCostRange}
-        onClearFilters={clearFilters}
-        selectedWeather={selectedWeather}
-        setSelectedWeather={setSelectedWeather}
-        searchEffectQuery={searchEffectQuery}
-        setSearchEffectQuery={setSearchEffectQuery}
-        selectedTraits={selectedTraits}
-        setSelectedTraits={setSelectedTraits}
-        selectedSet={selectedSet}
-        setSelectedSet={setSelectedSet}
-      />
-    </div>
-  </div>
-)}
+      {/* ✅ DESKTOP SIDEBAR */}
+      {!isMobile && (
+        <div
+          className="fixed top-0 left-0 w-64 h-screen z-30 bg-white bg-repeat-y border-r border-gray-200"
+          style={{ backgroundImage: "url('/images/sidebar-bg.png')" }}
+        >
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
+          <div className="relative z-20 h-full">
+            <Sidebar
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
+              selectedCabin={selectedCabin}
+              setSelectedCabin={setSelectedCabin}
+              selectedRarity={selectedRarity}
+              setSelectedRarity={setSelectedRarity}
+              selectedSet={selectedSet}
+              setSelectedSet={setSelectedSet}
+              selectedTaxa={selectedTaxa}
+              setSelectedTaxa={setSelectedTaxa}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              searchMode={searchMode}
+              setSearchMode={setSearchMode}
+              costRange={costRange}
+              setCostRange={setCostRange}
+              onClearFilters={clearFilters}
+              selectedWeather={selectedWeather}
+              setSelectedWeather={setSelectedWeather}
+              selectedTraits={selectedTraits}
+              setSelectedTraits={setSelectedTraits}
+              sortOption={sortOption}
+              setSortOption={setSortOption}
+            />
+          </div>
+        </div>
+      )}
 
 
       <header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-40">
@@ -336,13 +340,13 @@ export default function HomeClient() {
       </header>
 
       <div
-  className={`flex-1 relative overflow-y-auto pt-16 ${!isMobile ? 'ml-64' : ''}`}
-  onClick={() => {
-    if (window.innerWidth < 768 && isSidebarOpen) {
-      setIsSidebarOpen(false);
-    }
-  }}
->
+        className={`flex-1 relative overflow-y-auto pt-16 ${!isMobile ? 'ml-64' : ''}`}
+        onClick={() => {
+          if (window.innerWidth < 768 && isSidebarOpen) {
+            setIsSidebarOpen(false);
+          }
+        }}
+      >
         <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('/images/cardgrid-bg.png')" }} />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-10" />
 
@@ -372,8 +376,7 @@ export default function HomeClient() {
                   taxa: selectedTaxa,
                   weather: selectedWeather,
                   traits: selectedTraits,
-                  search: inputValue,
-                  effect: searchEffectQuery,
+                  search: searchQuery,
                   costRange: costRange,
                 }}
               />

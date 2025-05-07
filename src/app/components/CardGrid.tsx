@@ -15,15 +15,14 @@ export default function CardGrid({
   currentPage: number
   onCardClickStart: () => void
   filters: {
-    type: string
-    cabin: string
-    rarity: string
-    set: string
+    type: string[]
+    cabin: string[]
+    rarity: string[]
+    set: string[]
     taxa: string[]
     weather: string[]
     traits: string[]
     search: string
-    effect: string
     costRange: [number, number]
   }
 }) {
@@ -33,15 +32,14 @@ export default function CardGrid({
   const handleCardClick = (card: CryptidCampCard) => {
     const cabinKey = card.cabin?.toLowerCase() ?? ''
     const queryParams = new URLSearchParams()
-    if (filters.type) queryParams.set('type', filters.type)
-    if (filters.cabin) queryParams.set('cabin', filters.cabin)
-    if (filters.rarity) queryParams.set('rarity', filters.rarity)
-    if (filters.set) queryParams.set('set', filters.set)
+    if (filters.type.length > 0) queryParams.set('type', filters.type.join(','))
+    if (filters.cabin.length > 0) queryParams.set('cabin', filters.cabin.join(','))
+    if (filters.rarity.length > 0) queryParams.set('rarity', filters.rarity.join(','))
+    if (filters.set.length > 0) queryParams.set('set', filters.set.join(','))
     if (filters.taxa.length > 0) queryParams.set('taxa', filters.taxa.join(','))
     if (filters.weather.length > 0) queryParams.set('weather', filters.weather.join(','))
     if (filters.traits.length > 0) queryParams.set('traits', filters.traits.join(','))
     if (filters.search) queryParams.set('search', filters.search)
-    if (filters.effect) queryParams.set('effect', filters.effect)
     queryParams.set('costMin', String(filters.costRange[0]))
     queryParams.set('costMax', String(filters.costRange[1]))
     queryParams.set('bg', cabinKey)
