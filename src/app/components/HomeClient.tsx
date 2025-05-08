@@ -22,7 +22,10 @@ export default function HomeClient() {
   const [cards, setCards] = useState<CryptidCampCard[]>([]);
   const [isRoutingToCard, setIsRoutingToCard] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const [attackMode, setAttackMode] = useState<'exact' | 'range'>('range');
+  const [defenseMode, setDefenseMode] = useState<'exact' | 'range'>('range');
+  const [attackRange, setAttackRange] = useState<[number, number]>([0, 15]);
+  const [defenseRange, setDefenseRange] = useState<[number, number]>([0, 15]);
   const [selectedType, setSelectedType] = useState<string[]>([]);
   const [selectedCabin, setSelectedCabin] = useState<string[]>([]);
   const [selectedRarity, setSelectedRarity] = useState<string[]>([]);
@@ -30,6 +33,7 @@ export default function HomeClient() {
   const [selectedTaxa, setSelectedTaxa] = useState<string[]>([]);
   const [selectedWeather, setSelectedWeather] = useState<string[]>([]);
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
+  const [selectedIllustrators, setSelectedIllustrators] = useState<string[]>([]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'name' | 'effect' | 'both'>('both');
@@ -45,9 +49,12 @@ export default function HomeClient() {
     taxa: selectedTaxa,
     weather: selectedWeather,
     traits: selectedTraits,
+    illustrators: selectedIllustrators,
     search: searchQuery,
     costRange,
-  };
+    attackRange,
+    defenseRange,
+  };  
 
   useScrollToTopOnFiltersChange(filters);
 
@@ -75,6 +82,17 @@ export default function HomeClient() {
     const search = searchParams.get('search') || '';
     const costMin = Number(searchParams.get('costMin') || '0');
     const costMax = Number(searchParams.get('costMax') || '6');
+  
+    const attack = searchParams.get('attack');
+    const attackMin = searchParams.get('attackMin');
+    const attackMax = searchParams.get('attackMax');
+  
+    const defense = searchParams.get('defense');
+    const defenseMin = searchParams.get('defenseMin');
+    const defenseMax = searchParams.get('defenseMax');
+    const illustrators = searchParams.get('illustrators')?.split(',') || [];
+
+    setSelectedIllustrators(illustrators);    
     setSelectedType(type);
     setSelectedCabin(cabin);
     setSelectedRarity(rarity);
@@ -84,8 +102,35 @@ export default function HomeClient() {
     setSelectedTraits(traits);
     setSearchQuery(search);
     setCostRange([costMin, costMax]);
+  
+    // ATK filter setup
+    if (attack !== null) {
+      setAttackMode('exact');
+      const exactValue = Number(attack);
+      setAttackRange([exactValue, exactValue]);
+    } else if (attackMin !== null && attackMax !== null) {
+      setAttackMode('range');
+      setAttackRange([Number(attackMin), Number(attackMax)]);
+    } else {
+      setAttackMode('range');
+      setAttackRange([0, 15]);
+    }
+  
+    // DEF filter setup
+    if (defense !== null) {
+      setDefenseMode('exact');
+      const exactValue = Number(defense);
+      setDefenseRange([exactValue, exactValue]);
+    } else if (defenseMin !== null && defenseMax !== null) {
+      setDefenseMode('range');
+      setDefenseRange([Number(defenseMin), Number(defenseMax)]);
+    } else {
+      setDefenseMode('range');
+      setDefenseRange([0, 15]);
+    }
+  
     setFiltersLoaded(true);
-  }, [searchParams]);
+  }, [searchParams]);  
 
   useEffect(() => {
     if (!filtersLoaded) return;
@@ -102,12 +147,29 @@ export default function HomeClient() {
     params.set('sort', sortOption);
     params.set('costMin', String(costRange[0]));
     params.set('costMax', String(costRange[1]));
+    if (attackMode === 'exact') {
+      params.set('attack', String(attackRange[0]));
+    } else {
+      params.set('attackMin', String(attackRange[0]));
+      params.set('attackMax', String(attackRange[1]));
+    }
+    
+    if (defenseMode === 'exact') {
+      params.set('defense', String(defenseRange[0]));
+    } else {
+      params.set('defenseMin', String(defenseRange[0]));
+      params.set('defenseMax', String(defenseRange[1]));
+    }    
 
+    if (selectedIllustrators.length > 0) {
+      params.set('illustrators', selectedIllustrators.join(','));
+    }
+    
     const queryString = params.toString();
     const newUrl = queryString ? `/?${queryString}` : '/';
 
     setPendingUrlFilters(newUrl);
-  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, searchQuery, costRange]);
+  }, [filtersLoaded, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, searchQuery, costRange, attackMode, attackRange, defenseMode, defenseRange, sortOption, selectedIllustrators]);
 
   useEffect(() => {
     if (!filtersLoaded || !debouncedUrlFilters) return;
@@ -115,7 +177,9 @@ export default function HomeClient() {
     const fetchAllCardIds = async () => {
       const res = await fetch(`/api/card-ids${debouncedUrlFilters}`);
       const allIds = await res.json();
-      sessionStorage.setItem('visibleCardIds', JSON.stringify(allIds));
+      const flatIds = allIds.map((card: { id: string }) => card.id);
+      sessionStorage.setItem('visibleCardIds', JSON.stringify(flatIds));
+      
     };
 
     fetchAllCardIds();
@@ -133,11 +197,29 @@ export default function HomeClient() {
   useEffect(() => {
     if (!filtersLoaded) return;
     if (isPending) return;
-
+  
     fetchCards(true);
-  }, [filtersLoaded, isPending, selectedType, selectedCabin, selectedRarity, selectedSet, selectedTaxa, selectedWeather, selectedTraits, costRange, debouncedSearchQuery || '',
-    searchMode || 'both',
-    sortOption || 'name_asc']);
+  }, [
+    filtersLoaded,
+    isPending,
+    selectedType,
+    selectedCabin,
+    selectedRarity,
+    selectedSet,
+    selectedTaxa,
+    selectedWeather,
+    selectedTraits,
+    selectedIllustrators,
+    costRange,
+    attackMode,
+    attackRange,
+    defenseMode,
+    defenseRange,
+    debouncedSearchQuery,
+    searchMode,
+    sortOption
+  ]);
+  
 
   useEffect(() => {
     if (!loaderRef.current) return;
@@ -173,8 +255,14 @@ export default function HomeClient() {
     setSelectedTraits([]);
     setSearchQuery('');
     setCostRange([0, 6]);
+    setAttackMode('range');
+    setAttackRange([0, 15]);
+    setDefenseMode('range');
+    setDefenseRange([0, 15]);
     setHasMore(true);
     setOffset(0);
+    setSearchMode('both');
+    setSelectedIllustrators([]);
 
     startTransition(() => {
       router.push('/');
@@ -215,6 +303,23 @@ export default function HomeClient() {
     queryParams.set('sort', sortOption);
     queryParams.set('costMin', String(costRange[0]));
     queryParams.set('costMax', String(costRange[1]));
+    if (attackMode === 'exact') {
+      queryParams.set('attack', String(attackRange[0]));
+    } else {
+      queryParams.set('attackMin', String(attackRange[0]));
+      queryParams.set('attackMax', String(attackRange[1]));
+    }
+    
+    if (defenseMode === 'exact') {
+      queryParams.set('defense', String(defenseRange[0]));
+    } else {
+      queryParams.set('defenseMin', String(defenseRange[0]));
+      queryParams.set('defenseMax', String(defenseRange[1]));
+    }    
+
+    if (selectedIllustrators.length > 0) {
+      queryParams.set('illustrators', selectedIllustrators.join(','));
+    }
 
     const res = await fetch(`/api/cards?${queryParams.toString()}`);
     const data = await res.json();
@@ -276,11 +381,21 @@ export default function HomeClient() {
               setSearchMode={setSearchMode}
               costRange={costRange}
               setCostRange={setCostRange}
+              attackMode={attackMode}
+              setAttackMode={setAttackMode}
+              defenseMode={defenseMode}
+              setDefenseMode={setDefenseMode}
+              attackRange={attackRange}
+              setAttackRange={setAttackRange}
+              defenseRange={defenseRange}
+              setDefenseRange={setDefenseRange}
               onClearFilters={clearFilters}
               selectedWeather={selectedWeather}
               setSelectedWeather={setSelectedWeather}
               selectedTraits={selectedTraits}
               setSelectedTraits={setSelectedTraits}
+              selectedIllustrators={selectedIllustrators}
+              setSelectedIllustrators={setSelectedIllustrators}
               sortOption={sortOption}
               setSortOption={setSortOption}
             />
@@ -313,11 +428,21 @@ export default function HomeClient() {
               setSearchMode={setSearchMode}
               costRange={costRange}
               setCostRange={setCostRange}
+              attackMode={attackMode}
+              setAttackMode={setAttackMode}
+              defenseMode={defenseMode}
+              setDefenseMode={setDefenseMode}
+              attackRange={attackRange}
+              setAttackRange={setAttackRange}
+              defenseRange={defenseRange}
+              setDefenseRange={setDefenseRange}
               onClearFilters={clearFilters}
               selectedWeather={selectedWeather}
               setSelectedWeather={setSelectedWeather}
               selectedTraits={selectedTraits}
               setSelectedTraits={setSelectedTraits}
+              selectedIllustrators={selectedIllustrators}
+              setSelectedIllustrators={setSelectedIllustrators}
               sortOption={sortOption}
               setSortOption={setSortOption}
             />
@@ -376,8 +501,11 @@ export default function HomeClient() {
                   taxa: selectedTaxa,
                   weather: selectedWeather,
                   traits: selectedTraits,
+                  illustrators: selectedIllustrators,
                   search: searchQuery,
                   costRange: costRange,
+                  attackRange: attackRange,
+                  defenseRange: defenseRange
                 }}
               />
               <div ref={loaderRef} className="h-16"></div>

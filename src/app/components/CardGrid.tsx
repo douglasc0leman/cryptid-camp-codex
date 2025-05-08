@@ -22,8 +22,11 @@ export default function CardGrid({
     taxa: string[]
     weather: string[]
     traits: string[]
+    illustrators: string[]
     search: string
     costRange: [number, number]
+    attackRange: [number, number]
+    defenseRange: [number, number]
   }
 }) {
   const router = useRouter()
@@ -42,13 +45,30 @@ export default function CardGrid({
     if (filters.search) queryParams.set('search', filters.search)
     queryParams.set('costMin', String(filters.costRange[0]))
     queryParams.set('costMax', String(filters.costRange[1]))
+    if (filters.illustrators && filters.illustrators.length > 0) {
+      queryParams.set('illustrators', filters.illustrators.join(','))
+    }
+    
+    if (filters.attackRange) {
+      queryParams.set('attackMin', String(filters.attackRange[0]))
+      queryParams.set('attackMax', String(filters.attackRange[1]))
+    }
+    
+    if (filters.defenseRange) {
+      queryParams.set('defenseMin', String(filters.defenseRange[0]))
+      queryParams.set('defenseMax', String(filters.defenseRange[1]))
+    }
     queryParams.set('bg', cabinKey)
     const path = `/card/${card.id}?${queryParams.toString()}`
 
     onCardClickStart()
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('scrollPosition', window.scrollY.toString());
-      sessionStorage.setItem('currentCardId', card.id);
+
+      if (typeof card.id !== 'undefined') {
+        sessionStorage.setItem('currentCardId', String(card.id));
+      }
+      
     }
 
     router.push(path)

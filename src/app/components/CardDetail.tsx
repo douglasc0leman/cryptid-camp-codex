@@ -41,7 +41,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
   
   const cleanQuery = new URLSearchParams(baseQuery);
   cleanQuery.delete('bg');
-  cleanQuery.set('bg', card.cabin?.toLowerCase() || '');
+  //cleanQuery.set('bg', card.cabin?.toLowerCase() || '');
 
   const badgeMap: Record<string, string> = {
     Lapis: '/images/lapis.png', Obsidian: '/images/obsidian.png', Quartz: '/images/quartz.png',

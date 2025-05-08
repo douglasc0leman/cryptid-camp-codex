@@ -23,11 +23,21 @@ type Props = {
   setSearchMode: (value: 'name' | 'effect' | 'both') => void;
   costRange: [number, number];
   setCostRange: React.Dispatch<React.SetStateAction<[number, number]>>;
+  attackMode: 'exact' | 'range';
+  setAttackMode: React.Dispatch<React.SetStateAction<'exact' | 'range'>>;
+  defenseMode: 'exact' | 'range';
+  setDefenseMode: React.Dispatch<React.SetStateAction<'exact' | 'range'>>;
+  attackRange: [number, number];
+  setAttackRange: React.Dispatch<React.SetStateAction<[number, number]>>;
+  defenseRange: [number, number];
+  setDefenseRange: React.Dispatch<React.SetStateAction<[number, number]>>;
   onClearFilters: () => void;
   selectedWeather: string[];
   setSelectedWeather: React.Dispatch<React.SetStateAction<string[]>>;
   selectedTraits: string[];
   setSelectedTraits: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedIllustrators: string[];
+  setSelectedIllustrators: React.Dispatch<React.SetStateAction<string[]>>;
   sortOption: string;
   setSortOption: (value: SortOption) => void;
 };
@@ -47,6 +57,12 @@ const allTaxa = [
   'Spirit', 'Suid', 'Sylvan', 'Ursa', 'Vermis', 'Water', 'Wind', 'Yokai'
 ];
 
+const illustratorOptions = [
+  'Anela Botello', 'Nevan G', 'Kelsey Jachino', 'Kate Becker', 'Pepper DeLuca',
+  'Lillie McKay', 'Emily Nancy', 'Geccco', 'Cosmo', 'Tanner Wright',
+  'EldritchRach', 'Layla Arnt', 'Gabriela M.'
+];
+
 export default function Sidebar({
   selectedType,
   setSelectedType,
@@ -64,15 +80,39 @@ export default function Sidebar({
   setSearchMode,
   costRange,
   setCostRange,
+  attackMode,
+  setAttackMode,
+  defenseMode,
+  setDefenseMode,
+  attackRange,
+  setAttackRange,
+  defenseRange,
+  setDefenseRange,
   onClearFilters,
   selectedWeather,
   setSelectedWeather,
   selectedTraits,
   setSelectedTraits,
+  selectedIllustrators,
+  setSelectedIllustrators,
   sortOption,
   setSortOption
 }: Props) {
-  const hasActiveFilters = selectedType.length > 0 || selectedSet.length > 0 || selectedCabin.length > 0 || selectedRarity.length > 0 || selectedTraits.length > 0 || selectedTaxa.length > 0 || selectedWeather.length > 0 || searchQuery || costRange[0] !== 0 || costRange[1] !== 6;
+
+  const hasActiveFilters =
+    selectedType.length > 0 ||
+    selectedSet.length > 0 ||
+    selectedCabin.length > 0 ||
+    selectedRarity.length > 0 ||
+    selectedTraits.length > 0 ||
+    selectedTaxa.length > 0 ||
+    selectedWeather.length > 0 ||
+    searchQuery ||
+    selectedIllustrators.length > 0 ||
+    costRange[0] !== 0 || costRange[1] !== 6 ||
+    (attackMode === 'exact' ? attackRange[0] !== 0 : attackRange[0] !== 0 || attackRange[1] !== 15) ||
+    (defenseMode === 'exact' ? defenseRange[0] !== 0 : defenseRange[0] !== 0 || defenseRange[1] !== 15);
+
 
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [isCabinOpen, setIsCabinOpen] = useState(false);
@@ -81,6 +121,7 @@ export default function Sidebar({
   const [isTraitsOpen, setIsTraitsOpen] = useState(false);
   const [isWeatherOpen, setIsWeatherOpen] = useState(false);
   const [isTaxaOpen, setIsTaxaOpen] = useState(false);
+  const [isIllustratorOpen, setIsIllustratorOpen] = useState(false);
 
   // Auto-expand based on active filters
   useEffect(() => {
@@ -145,7 +186,8 @@ export default function Sidebar({
           </select>
         </div>
 
-        <div className="px-4 pb-4 space-y-6 text-white md:overflow-y-auto md:max-h-[calc(100vh-4rem)] flex-1 custom-scrollbar">
+        <div className="px-4 pb-4 space-y-6 text-white overflow-y-auto max-h-[calc(100vh-16rem)] custom-scrollbar">
+
           {/* Search Bar */}
           <div className="relative">
             <div className="flex justify-between items-center mb-1 gap-2">
@@ -156,7 +198,7 @@ export default function Sidebar({
                     key={mode}
                     type="button"
                     onClick={() => setSearchMode(mode as 'name' | 'effect' | 'both')}
-                    className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition duration-200 ${searchMode === mode
+                    className={`px-1.5 py-0.5 rounded-full text-[11px] font-medium leading-tight transition duration-200 ${searchMode === mode
                       ? 'bg-indigo-500 text-white'
                       : 'bg-white/20 text-white border border-white/20'
                       }`}
@@ -228,6 +270,183 @@ export default function Sidebar({
             </div>
           </div>
 
+          {/* ATK Filter */}
+          <div className="pb-4 border-b border-white/20">
+            <div className="px-2">
+              {/* Label + Mode Pills Inline */}
+              <div className="flex justify-between items-center mb-3 gap-2">
+                <label className="text-sm font-medium whitespace-nowrap">ATK Filter</label>
+                <div className="flex gap-1 flex-wrap">
+                  {['exact', 'range'].map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setAttackMode(mode as 'exact' | 'range')}
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition duration-200 ${attackMode === mode
+                          ? 'bg-indigo-500 text-white'
+                          : 'bg-white/20 text-white border border-white/20'
+                        }`}
+                    >
+                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Exact Mode */}
+              {attackMode === 'exact' && (
+                <div className="flex justify-center items-center mt-2 space-x-2 text-white text-sm">
+                  <input
+                    type="number"
+                    value={attackRange[0].toString()}
+                    onFocus={(e) => {
+                      if (e.target.value === '0') {
+                        e.target.value = '';
+                      }
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const val = raw === '' ? 0 : Math.max(0, Math.min(15, +raw));
+                      setAttackRange([val, val]);
+                    }}
+                    className="w-full max-w-[100px] p-1 bg-white text-gray-800 rounded text-center"
+                    min={0}
+                    max={15}
+                  />
+                </div>
+              )}
+
+              {/* Range Mode */}
+              {attackMode === 'range' && (
+                <div className="flex justify-between items-center mt-2 space-x-2 text-white text-sm">
+                  <input
+                    type="number"
+                    value={attackRange[0].toString()}
+                    onFocus={(e) => {
+                      if (e.target.value === '0') {
+                        e.target.value = '';
+                      }
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const val = raw === '' ? 0 : Math.max(0, Math.min(15, +raw));
+                      setAttackRange([val, attackRange[1]]);
+                    }}
+                    className="w-full max-w-[100px] p-1 bg-white text-gray-800 rounded text-center"
+                    min={0}
+                    max={15}
+                  />
+                  <span className="px-1">to</span>
+                  <input
+                    type="number"
+                    value={attackRange[1].toString()}
+                    onFocus={(e) => {
+                      if (e.target.value === '0') {
+                        e.target.value = '';
+                      }
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const val = raw === '' ? 0 : Math.max(0, Math.min(15, +raw));
+                      setAttackRange([attackRange[0], val]);
+                    }}
+                    className="w-full max-w-[100px] p-1 bg-white text-gray-800 rounded text-center"
+                    min={0}
+                    max={15}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* DEF Filter */}
+          <div className="pb-4 border-b border-white/20">
+            <div className="px-2">
+              {/* Label + Mode Pills Inline */}
+              <div className="flex justify-between items-center mb-3 gap-2">
+                <label className="text-sm font-medium whitespace-nowrap">DEF Filter</label>
+                <div className="flex gap-1 flex-wrap">
+                  {['exact', 'range'].map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setDefenseMode(mode as 'exact' | 'range')}
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition duration-200 ${defenseMode === mode
+                          ? 'bg-indigo-500 text-white'
+                          : 'bg-white/20 text-white border border-white/20'
+                        }`}
+                    >
+                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Exact Mode */}
+              {defenseMode === 'exact' && (
+                <div className="flex justify-center items-center mt-2 space-x-2 text-white text-sm">
+                  <input
+                    type="number"
+                    value={defenseRange[0].toString()}
+                    onFocus={(e) => {
+                      if (e.target.value === '0') {
+                        e.target.value = '';
+                      }
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const val = raw === '' ? 0 : Math.max(0, Math.min(15, +raw));
+                      setDefenseRange([val, val]);
+                    }}
+                    className="w-full max-w-[100px] p-1 bg-white text-gray-800 rounded text-center"
+                    min={0}
+                    max={15}
+                  />
+                </div>
+              )}
+
+              {/* Range Mode */}
+              {defenseMode === 'range' && (
+                <div className="flex justify-between items-center mt-2 space-x-2 text-white text-sm">
+                  <input
+                    type="number"
+                    value={defenseRange[0].toString()}
+                    onFocus={(e) => {
+                      if (e.target.value === '0') {
+                        e.target.value = '';
+                      }
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const val = raw === '' ? 0 : Math.max(0, Math.min(15, +raw));
+                      setDefenseRange([val, defenseRange[1]]);
+                    }}
+                    className="w-full max-w-[100px] p-1 bg-white text-gray-800 rounded text-center"
+                    min={0}
+                    max={15}
+                  />
+                  <span className="px-1">to</span>
+                  <input
+                    type="number"
+                    value={defenseRange[1].toString()}
+                    onFocus={(e) => {
+                      if (e.target.value === '0') {
+                        e.target.value = '';
+                      }
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const val = raw === '' ? 0 : Math.max(0, Math.min(15, +raw));
+                      setDefenseRange([defenseRange[0], val]);
+                    }}
+                    className="w-full max-w-[100px] p-1 bg-white text-gray-800 rounded text-center"
+                    min={0}
+                    max={15}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Type Filter */}
           <div>
@@ -486,6 +705,42 @@ export default function Sidebar({
                       }`}
                   >
                     {taxon}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Illustrator Filter */}
+          <div>
+            <div className="flex justify-between items-center mb-2 cursor-pointer" onClick={() => setIsIllustratorOpen(!isIllustratorOpen)}>
+              <label className="text-sm font-medium">Filter by Illustrator</label>
+              <div className="flex items-center gap-2">
+                {selectedIllustrators.length > 0 && (
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedIllustrators([]); }} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+                )}
+                <span className="text-sm">{isIllustratorOpen ? '−' : '+'}</span>
+              </div>
+            </div>
+
+            {isIllustratorOpen && (
+              <div className="flex flex-wrap gap-2 bg-white/10 p-2 rounded overflow-y-auto">
+                {illustratorOptions.map((illustrator) => (
+                  <button
+                    key={illustrator}
+                    onClick={() => {
+                      setSelectedIllustrators((prev) =>
+                        prev.includes(illustrator)
+                          ? prev.filter((i) => i !== illustrator)
+                          : [...prev, illustrator]
+                      );
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition duration-300 ease-in-out transform hover:scale-110 hover:shadow-md hover:shadow-indigo-400/40 ${selectedIllustrators.includes(illustrator)
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-white/20 text-white border border-white/20'
+                      }`}
+                  >
+                    {illustrator}
                   </button>
                 ))}
               </div>

@@ -4,21 +4,36 @@ import type { RowDataPacket } from 'mysql2';
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
+  const sort = url.searchParams.get('sort') || 'name_asc';
   const taxaQuery = url.searchParams.get('taxa');
   const taxa = taxaQuery ? taxaQuery.split(',') : [];
   const weather = url.searchParams.get('weather')?.split(',').filter(Boolean) || [];
   const traits = url.searchParams.get('traits')?.split(',').filter(Boolean) || [];
-  const type = url.searchParams.get('type');
-  const rarity = url.searchParams.get('rarity');
-  const set = url.searchParams.get('set');
-  const cabin = url.searchParams.get('cabin');
+  const type = url.searchParams.get('type')?.split(',').filter(Boolean) || [];
+  const rarity = url.searchParams.get('rarity')?.split(',').filter(Boolean) || [];
+  const set = url.searchParams.get('set')?.split(',').filter(Boolean) || [];
+  const cabin = url.searchParams.get('cabin')?.split(',').filter(Boolean) || [];
   const costMin = url.searchParams.get('costMin');
   const costMax = url.searchParams.get('costMax');
+
+  const attackParam = url.searchParams.get('attack');
+  const attack = attackParam !== null ? Number(attackParam) : null;
+  const attackMin = Number(url.searchParams.get('attackMin'));
+  const attackMax = Number(url.searchParams.get('attackMax'));
+
+  const defenseParam = url.searchParams.get('defense');
+  const defense = defenseParam !== null ? Number(defenseParam) : null;
+  const defenseMin = Number(url.searchParams.get('defenseMin'));
+  const defenseMax = Number(url.searchParams.get('defenseMax'));
+  const illustrators = url.searchParams.get('illustrators')?.split(',').filter(Boolean) || [];
+
   const search = url.searchParams.get('search');
   const effect = url.searchParams.get('effect');
+  const combinedSearch = url.searchParams.get('combinedSearch');
 
   let query = `
-    SELECT c.id
+    SELECT 
+      c.id
     FROM card c
     LEFT JOIN cabin cabin ON c.cabin_id = cabin.id
   `;
@@ -26,7 +41,7 @@ export async function GET(req: NextRequest) {
   const whereClauses: string[] = [];
   const values: (string | number)[] = [];
 
-  // Taxa
+  // Taxa filter
   if (taxa.length > 0) {
     taxa.forEach((taxon) => {
       whereClauses.push(`c.taxon LIKE ?`);
@@ -34,7 +49,7 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Type
+  // Type filter
   const typeMap: Record<string, string> = {
     cryptid: 'is_cryptid',
     lantern: 'is_lantern',
@@ -46,30 +61,43 @@ export async function GET(req: NextRequest) {
     czo: 'is_czo',
     'special lantern': 'is_special_lantern',
   };
-  const typeParam = type?.toLowerCase();
-  if (typeParam && typeMap[typeParam]) {
-    whereClauses.push(`c.${typeMap[typeParam]} = 1`);
+
+  if (type.length > 0) {
+    const typeConditions: string[] = [];
+    type.forEach((t) => {
+      const key = t.toLowerCase();
+      if (typeMap[key]) {
+        typeConditions.push(`c.${typeMap[key]} = 1`);
+      }
+    });
+    if (typeConditions.length > 0) {
+      whereClauses.push(`(${typeConditions.join(' OR ')})`);
+    }
   }
 
-  // Rarity
+  // Rarity filter
   const allowedRarities = ['common', 'uncommon', 'rare', 'unique'];
-  if (rarity && allowedRarities.includes(rarity)) {
-    whereClauses.push(`c.is_${rarity} = 1`);
+  if (rarity.length > 0) {
+    const rarityConditions = rarity
+      .filter((r) => allowedRarities.includes(r))
+      .map((r) => `c.is_${r} = 1`);
+    if (rarityConditions.length > 0) {
+      whereClauses.push(`(${rarityConditions.join(' OR ')})`);
+    }
   }
 
-  // Set
-  if (set) {
-    whereClauses.push(`c.set_name = ?`);
-    values.push(set);
+  if (set.length > 0) {
+    whereClauses.push(`c.set_name IN (${set.map(() => '?').join(', ')})`);
+    values.push(...set);
   }
 
-  // Cabin
-  if (cabin) {
-    whereClauses.push(`LOWER(cabin.name) = LOWER(?)`);
-    values.push(cabin);
+  // Cabin filter
+  if (cabin.length > 0) {
+    whereClauses.push(`LOWER(cabin.name) IN (${cabin.map(() => 'LOWER(?)').join(', ')})`);
+    values.push(...cabin);
   }
 
-  // Cost Range
+  // Cost Range filter
   if (costMin !== null && costMax !== null) {
     if (costMin === costMax) {
       whereClauses.push(`c.cost = ?`);
@@ -84,23 +112,59 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Name search
+  // Attack filter
+  if (attack !== null && !isNaN(attack)) {
+    whereClauses.push(`c.attack = ?`);
+    values.push(attack);
+  } else if (!isNaN(attackMin) && !isNaN(attackMax)) {
+    const min = attackMin;
+    const max = attackMax;
+    if (min === 0 && max === 15) {
+      whereClauses.push(`(c.attack IS NULL OR c.attack BETWEEN ? AND ?)`);
+    } else {
+      whereClauses.push(`c.attack BETWEEN ? AND ?`);
+    }
+    values.push(min, max);
+  }
+
+  // Defense filter
+  if (defense !== null && !isNaN(defense)) {
+    whereClauses.push(`c.defense = ?`);
+    values.push(defense);
+  } else if (!isNaN(defenseMin) && !isNaN(defenseMax)) {
+    const min = defenseMin;
+    const max = defenseMax;
+    if (min === 0 && max === 15) {
+      whereClauses.push(`(c.defense IS NULL OR c.defense BETWEEN ? AND ?)`);
+    } else {
+      whereClauses.push(`c.defense BETWEEN ? AND ?`);
+    }
+    values.push(min, max);
+  }
+
+  // Search by name
   if (search) {
     whereClauses.push(`c.name LIKE ?`);
     values.push(`%${search}%`);
   }
 
-  // Effect search
+  // Search by effect
   if (effect) {
     whereClauses.push(`c.text_box LIKE ?`);
     values.push(`%${effect}%`);
   }
 
+  // Combined search
+  if (combinedSearch) {
+    whereClauses.push(`(c.name LIKE ? OR c.text_box LIKE ?)`);
+    values.push(`%${combinedSearch}%`, `%${combinedSearch}%`);
+  }
+
   // Weather
   if (weather.length > 0) {
     weather.forEach((w) => {
-      whereClauses.push(`c.text_box IS NOT NULL AND c.text_box LIKE ?`);
-      values.push(`%${w}:%`);
+      whereClauses.push(`(c.text_box IS NOT NULL AND c.text_box LIKE ? OR c.name LIKE ?)`);
+      values.push(`%${w}:%`, `%${w}%`);
     });
   }
 
@@ -112,14 +176,49 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // Illustrators
+  if (illustrators.length > 0) {
+    whereClauses.push(`c.illustrator IN (${illustrators.map(() => '?').join(', ')})`);
+    values.push(...illustrators);
+  }  
+
+  // Final WHERE clause
   if (whereClauses.length > 0) {
     query += ' WHERE ' + whereClauses.join(' AND ');
   }
 
-  query += ' ORDER BY c.name ASC';
+  // Sort
+  switch (sort) {
+    case 'name_asc':
+      query += ' ORDER BY LOWER(c.name) ASC';
+      break;
+    case 'name_desc':
+      query += ' ORDER BY LOWER(c.name) DESC';
+      break;
+    case 'cost_asc':
+      query += ' ORDER BY c.cost ASC';
+      break;
+    case 'cost_desc':
+      query += ' ORDER BY c.cost DESC';
+      break;
+    case 'set_number_asc':
+      query += `
+        ORDER BY 
+          CAST(SUBSTRING_INDEX(c.set_number, '/', -1) AS UNSIGNED) ASC,
+          CAST(SUBSTRING_INDEX(c.set_number, '/', 1) AS UNSIGNED) ASC
+      `;
+      break;
+    case 'set_number_desc':
+      query += `
+        ORDER BY 
+          CAST(SUBSTRING_INDEX(c.set_number, '/', -1) AS UNSIGNED) DESC,
+          CAST(SUBSTRING_INDEX(c.set_number, '/', 1) AS UNSIGNED) DESC
+      `;
+      break;
+    default:
+      query += ' ORDER BY c.name ASC';
+  }
 
   const [rows] = await db.query<RowDataPacket[]>(query, values);
-  const ids = rows.map((r) => r.id);
-
-  return NextResponse.json(ids);
+  return NextResponse.json(rows);
 }
