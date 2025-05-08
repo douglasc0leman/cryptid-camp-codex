@@ -149,10 +149,6 @@ export default function Sidebar({
   return (
 <aside className="h-screen flex flex-col w-full max-w-[16rem]">
 
-
-      {/* blur effect over sidebar */}
-      {/* <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" /> */}
-
       {/* Content Container */}
       <div className="relative z-20 flex flex-col h-full">
         {/* Logo */}
@@ -192,8 +188,12 @@ export default function Sidebar({
           >
             <option value="name_asc">Name A–Z</option>
             <option value="name_desc">Name Z–A</option>
-            <option value="cost_asc">Cost Low → High</option>
-            <option value="cost_desc">Cost High → Low</option>
+            <option value="atk_asc">ATK Low → High</option>
+            <option value="atk_desc">ATK High → Low</option>
+            <option value="def_asc">DEF Low → High</option>
+            <option value="def_desc">DEF High → Low</option>
+            <option value="cost_asc">Level Low → High</option>
+            <option value="cost_desc">Level High → Low</option>
             <option value="set_number_asc">Set Number Low → High</option>
             <option value="set_number_desc">Set Number High → Low</option>
           </select>

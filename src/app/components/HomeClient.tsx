@@ -10,6 +10,7 @@ import type { CryptidCampCard } from '../types/Card';
 import Image from 'next/image';
 import { useScrollToTopOnFiltersChange } from '@/hooks/useScrollToTopOnFiltersChange';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { SortOption } from '../types/SortOption';
 
 export default function HomeClient() {
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function HomeClient() {
   useScrollToTopOnFiltersChange(filters);
 
   const itemsPerPage = 12;
-  const [sortOption, setSortOption] = useState<'name_asc' | 'name_desc' | 'cost_asc' | 'cost_desc' | 'set_number_asc' | 'set_number_desc'>('name_asc');
+  const [sortOption, setSortOption] = useState<'name_asc' | 'name_desc' | 'cost_asc' | 'cost_desc' | 'set_number_asc' | 'set_number_desc' | 'atk_asc' | 'atk_desc' | 'def_asc' | 'def_desc'>('name_asc');
 
   const loaderRef = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
@@ -82,7 +83,7 @@ export default function HomeClient() {
     const search = searchParams.get('search') || '';
     const costMin = Number(searchParams.get('costMin') || '0');
     const costMax = Number(searchParams.get('costMax') || '6');
-  
+    
     const attack = searchParams.get('attack');
     const attackMin = searchParams.get('attackMin');
     const attackMax = searchParams.get('attackMax');
@@ -91,6 +92,7 @@ export default function HomeClient() {
     const defenseMin = searchParams.get('defenseMin');
     const defenseMax = searchParams.get('defenseMax');
     const illustrators = searchParams.get('illustrators')?.split(',') || [];
+    const sort = searchParams.get('sort') as SortOption || 'name_asc';
 
     setSelectedIllustrators(illustrators);    
     setSelectedType(type);
@@ -102,6 +104,7 @@ export default function HomeClient() {
     setSelectedTraits(traits);
     setSearchQuery(search);
     setCostRange([costMin, costMax]);
+    setSortOption(sort);
   
     // ATK filter setup
     if (attack !== null) {
@@ -354,8 +357,7 @@ export default function HomeClient() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-gray-800 relative">
-      {/* Separate background for the sidebar */}
-      {/* ✅ MOBILE SIDEBAR */}
+      {/* MOBILE SIDEBAR */}
       {isMobile && (
         <div
           className={`fixed top-0 left-0 z-50 w-64 h-screen bg-white bg-repeat-y transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -403,7 +405,7 @@ export default function HomeClient() {
         </div>
       )}
 
-      {/* ✅ DESKTOP SIDEBAR */}
+      {/* DESKTOP SIDEBAR */}
       {!isMobile && (
         <div
           className="fixed top-0 left-0 w-64 h-screen z-30 bg-white bg-repeat-y border-r border-gray-200"
@@ -505,7 +507,8 @@ export default function HomeClient() {
                   search: searchQuery,
                   costRange: costRange,
                   attackRange: attackRange,
-                  defenseRange: defenseRange
+                  defenseRange: defenseRange,
+                  sortOption: sortOption
                 }}
               />
               <div ref={loaderRef} className="h-16"></div>

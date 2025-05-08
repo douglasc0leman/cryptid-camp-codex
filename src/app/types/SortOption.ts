@@ -1,1 +1,1 @@
-export type SortOption = 'name_asc' | 'name_desc' | 'cost_asc' | 'cost_desc' | 'set_number_asc' | 'set_number_desc';
+export type SortOption = 'name_asc' | 'name_desc' | 'cost_asc' | 'cost_desc' | 'set_number_asc' | 'set_number_desc' | 'atk_asc' | 'atk_desc' | 'def_asc' | 'def_desc';

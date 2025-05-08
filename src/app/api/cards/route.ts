@@ -185,6 +185,13 @@ export async function GET(req: NextRequest) {
     values.push(...illustrators);
   }  
 
+  if (sort === 'atk_asc' || sort === 'atk_desc') {
+    whereClauses.push('c.attack IS NOT NULL');
+  }
+  if (sort === 'def_asc' || sort === 'def_desc') {
+    whereClauses.push('c.defense IS NOT NULL');
+  }
+
   // Final WHERE clause
   if (whereClauses.length > 0) {
     query += ' WHERE ' + whereClauses.join(' AND ');
@@ -217,6 +224,18 @@ export async function GET(req: NextRequest) {
           CAST(SUBSTRING_INDEX(c.set_number, '/', -1) AS UNSIGNED) DESC,
           CAST(SUBSTRING_INDEX(c.set_number, '/', 1) AS UNSIGNED) DESC
       `;
+      break;
+    case 'atk_asc':
+      query += ' ORDER BY c.attack ASC';
+      break;
+    case 'atk_desc':
+      query += ' ORDER BY c.attack DESC';
+      break;
+    case 'def_asc':
+      query += ' ORDER BY c.defense ASC';
+      break;
+    case 'def_desc':
+      query += ' ORDER BY c.defense DESC';
       break;
     default:
       query += ' ORDER BY c.name ASC';

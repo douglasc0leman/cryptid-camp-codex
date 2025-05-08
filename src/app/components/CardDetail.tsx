@@ -40,8 +40,6 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
   }, [searchParams]);
   
   const cleanQuery = new URLSearchParams(baseQuery);
-  cleanQuery.delete('bg');
-  //cleanQuery.set('bg', card.cabin?.toLowerCase() || '');
 
   const badgeMap: Record<string, string> = {
     Lapis: '/images/lapis.png', Obsidian: '/images/obsidian.png', Quartz: '/images/quartz.png',
@@ -80,7 +78,6 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
 
   const backToCodexQuery = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString());
-    params.delete('bg');
     return params.toString();
   }, [searchParams]);
 

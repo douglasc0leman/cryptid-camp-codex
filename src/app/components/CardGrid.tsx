@@ -27,13 +27,13 @@ export default function CardGrid({
     costRange: [number, number]
     attackRange: [number, number]
     defenseRange: [number, number]
+    sortOption: string
   }
 }) {
   const router = useRouter()
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   
   const handleCardClick = (card: CryptidCampCard) => {
-    const cabinKey = card.cabin?.toLowerCase() ?? ''
     const queryParams = new URLSearchParams()
     if (filters.type.length > 0) queryParams.set('type', filters.type.join(','))
     if (filters.cabin.length > 0) queryParams.set('cabin', filters.cabin.join(','))
@@ -43,6 +43,7 @@ export default function CardGrid({
     if (filters.weather.length > 0) queryParams.set('weather', filters.weather.join(','))
     if (filters.traits.length > 0) queryParams.set('traits', filters.traits.join(','))
     if (filters.search) queryParams.set('search', filters.search)
+    if (filters.sortOption) queryParams.set('sort', filters.sortOption)
     queryParams.set('costMin', String(filters.costRange[0]))
     queryParams.set('costMax', String(filters.costRange[1]))
     if (filters.illustrators && filters.illustrators.length > 0) {
@@ -58,7 +59,6 @@ export default function CardGrid({
       queryParams.set('defenseMin', String(filters.defenseRange[0]))
       queryParams.set('defenseMax', String(filters.defenseRange[1]))
     }
-    queryParams.set('bg', cabinKey)
     const path = `/card/${card.id}?${queryParams.toString()}`
 
     onCardClickStart()
