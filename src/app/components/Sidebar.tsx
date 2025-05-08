@@ -143,10 +143,12 @@ export default function Sidebar({
     if (selectedTraits.length > 0) setIsTraitsOpen(true);
     if (selectedWeather.length > 0) setIsWeatherOpen(true);
     if (selectedTaxa.length > 0) setIsTaxaOpen(true);
-  }, [selectedType, selectedCabin, selectedRarity, selectedSet, selectedTraits, selectedWeather, selectedTaxa]);
+    if (selectedIllustrators.length > 0) setIsIllustratorOpen(true);
+  }, [selectedType, selectedCabin, selectedRarity, selectedSet, selectedTraits, selectedWeather, selectedTaxa, selectedIllustrators]);
 
   return (
-    <aside className="relative min-h-screen w-full max-w-[16rem]">
+<aside className="h-screen flex flex-col w-full max-w-[16rem]">
+
 
       {/* blur effect over sidebar */}
       {/* <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10" /> */}
