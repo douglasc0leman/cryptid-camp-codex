@@ -57,10 +57,21 @@ const allTaxa = [
   'Spirit', 'Suid', 'Sylvan', 'Ursa', 'Vermis', 'Water', 'Wind', 'Yokai'
 ];
 
-const illustratorOptions = [
-  'Anela Botello', 'Nevan G', 'Kelsey Jachino', 'Kate Becker', 'Pepper DeLuca',
-  'Lillie McKay', 'Emily Nancy', 'Geccco', 'Cosmo', 'Tanner Wright',
-  'EldritchRach', 'Layla Arnt', 'Gabriela M.'
+const illustratorOptions = 
+[
+  'Anela Botello',
+  'Cosmo',
+  'EldritchRach',
+  'Emily Nancy',
+  'Gabriela M.',
+  'Geccco',
+  'Kate Becker',
+  'Kelsey Jachino',
+  'Layla Arnt',
+  'Lillie McKay',
+  'Nevan G',
+  'Pepper DeLuca',
+  'Tanner Wright'
 ];
 
 export default function Sidebar({
