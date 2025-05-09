@@ -55,7 +55,7 @@ export default function HomeClient() {
     costRange,
     attackRange,
     defenseRange,
-  };  
+  };
 
   useScrollToTopOnFiltersChange(filters);
 
@@ -83,18 +83,18 @@ export default function HomeClient() {
     const search = searchParams.get('search') || '';
     const costMin = Number(searchParams.get('costMin') || '0');
     const costMax = Number(searchParams.get('costMax') || '6');
-    
+
     const attack = searchParams.get('attack');
     const attackMin = searchParams.get('attackMin');
     const attackMax = searchParams.get('attackMax');
-  
+
     const defense = searchParams.get('defense');
     const defenseMin = searchParams.get('defenseMin');
     const defenseMax = searchParams.get('defenseMax');
     const illustrators = searchParams.get('illustrators')?.split(',') || [];
     const sort = searchParams.get('sort') as SortOption || 'name_asc';
 
-    setSelectedIllustrators(illustrators);    
+    setSelectedIllustrators(illustrators);
     setSelectedType(type);
     setSelectedCabin(cabin);
     setSelectedRarity(rarity);
@@ -105,7 +105,7 @@ export default function HomeClient() {
     setSearchQuery(search);
     setCostRange([costMin, costMax]);
     setSortOption(sort);
-  
+
     // ATK filter setup
     if (attack !== null) {
       setAttackMode('exact');
@@ -118,7 +118,7 @@ export default function HomeClient() {
       setAttackMode('range');
       setAttackRange([0, 15]);
     }
-  
+
     // DEF filter setup
     if (defense !== null) {
       setDefenseMode('exact');
@@ -131,9 +131,9 @@ export default function HomeClient() {
       setDefenseMode('range');
       setDefenseRange([0, 15]);
     }
-  
+
     setFiltersLoaded(true);
-  }, [searchParams]);  
+  }, [searchParams]);
 
   useEffect(() => {
     if (!filtersLoaded) return;
@@ -156,18 +156,18 @@ export default function HomeClient() {
       params.set('attackMin', String(attackRange[0]));
       params.set('attackMax', String(attackRange[1]));
     }
-    
+
     if (defenseMode === 'exact') {
       params.set('defense', String(defenseRange[0]));
     } else {
       params.set('defenseMin', String(defenseRange[0]));
       params.set('defenseMax', String(defenseRange[1]));
-    }    
+    }
 
     if (selectedIllustrators.length > 0) {
       params.set('illustrators', selectedIllustrators.join(','));
     }
-    
+
     const queryString = params.toString();
     const newUrl = queryString ? `/?${queryString}` : '/';
 
@@ -182,7 +182,7 @@ export default function HomeClient() {
       const allIds = await res.json();
       const flatIds = allIds.map((card: { id: string }) => card.id);
       sessionStorage.setItem('visibleCardIds', JSON.stringify(flatIds));
-      
+
     };
 
     fetchAllCardIds();
@@ -200,7 +200,7 @@ export default function HomeClient() {
   useEffect(() => {
     if (!filtersLoaded) return;
     if (isPending) return;
-  
+
     fetchCards(true);
   }, [
     filtersLoaded,
@@ -222,7 +222,7 @@ export default function HomeClient() {
     searchMode,
     sortOption
   ]);
-  
+
 
   useEffect(() => {
     if (!loaderRef.current) return;
@@ -312,13 +312,13 @@ export default function HomeClient() {
       queryParams.set('attackMin', String(attackRange[0]));
       queryParams.set('attackMax', String(attackRange[1]));
     }
-    
+
     if (defenseMode === 'exact') {
       queryParams.set('defense', String(defenseRange[0]));
     } else {
       queryParams.set('defenseMin', String(defenseRange[0]));
       queryParams.set('defenseMax', String(defenseRange[1]));
-    }    
+    }
 
     if (selectedIllustrators.length > 0) {
       queryParams.set('illustrators', selectedIllustrators.join(','));
@@ -411,6 +411,7 @@ export default function HomeClient() {
           className="fixed top-0 left-0 w-64 h-screen z-30 bg-white bg-repeat-y border-r border-gray-200"
           style={{ backgroundImage: "url('/images/sidebar-bg.png')" }}
         >
+
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 pointer-events-none" />
           <div className="relative z-20 h-full">
             <Sidebar
@@ -453,18 +454,47 @@ export default function HomeClient() {
       )}
 
 
-      <header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center p-4 border-b shadow bg-white z-40">
-        <h1 className="text-xl font-bold">Cryptid Camp Codex</h1>
-        <button onClick={() => setIsSidebarOpen((prev) => !prev)}>
-          {isSidebarOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
-        </button>
-      </header>
+<header className="fixed top-0 left-0 right-0 flex md:hidden justify-between items-center px-4 py-3 z-40
+                   backdrop-blur-md bg-[#0e1a2b]/70 border-b border-white/10 shadow-md">
+  <h1 className="text-lg font-semibold text-white">Cryptid Camp Codex</h1>
+  <div className="flex items-center space-x-3">
+    <button onClick={() => setIsSidebarOpen((prev) => !prev)} className="text-white">
+      {isSidebarOpen ? (
+        <X className="w-6 h-6" />
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      )}
+    </button>
+  </div>
+</header>
+
+
+      {/* DESKTOP HEADER */}
+      {!isMobile && (
+        <div className="fixed top-0 left-64 right-0 z-30 px-6 py-3 flex justify-end items-center
+                  backdrop-blur-md bg-[#0e1a2b]/70 border-b border-white/10 shadow-md">
+          <div className="flex space-x-3">
+            <a
+              href="/deckbuilder"
+              className="px-4 py-2 rounded-lg text-sm font-medium transition
+                   text-white hover:bg-white/10 border border-white/20"
+            >
+              Deck Builder
+            </a>
+            <a
+              href="/"
+              className="px-4 py-2 rounded-lg text-sm font-medium transition
+                   bg-white/10 text-white border border-white/20 shadow-inner"
+            >
+              Codex
+            </a>
+          </div>
+        </div>
+      )}
+
+
 
       <div
         className={`flex-1 relative overflow-y-auto pt-16 ${!isMobile ? 'ml-64' : ''}`}

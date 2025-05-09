@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Range } from 'react-range';
 import { SortOption } from '../types/SortOption';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 type Props = {
   selectedType: string[];
@@ -124,6 +125,7 @@ export default function Sidebar({
     (attackMode === 'exact' ? attackRange[0] !== 0 : attackRange[0] !== 0 || attackRange[1] !== 15) ||
     (defenseMode === 'exact' ? defenseRange[0] !== 0 : defenseRange[0] !== 0 || defenseRange[1] !== 15);
 
+  const isMobile = useIsMobile();
 
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [isCabinOpen, setIsCabinOpen] = useState(false);
@@ -164,6 +166,19 @@ export default function Sidebar({
             />
           </Link>
         </div>
+
+  {/* Deck Builder Button */}
+  {isMobile && (    
+
+          <div className="px-2 mb-4 flex justify-center">
+<a
+  href="/deckbuilder"
+  className="w-[90%] max-w-sm rounded-md px-5 py-3 text-sm font-semibold backdrop-blur-sm bg-white/10 text-white border border-white/20 shadow hover:bg-white/20 transition-all duration-200 tracking-wide text-center block"
+>
+  Deck Builder
+</a>
+</div>
+  )}
 
         {/* Clear All Filters */}
         {hasActiveFilters && (
