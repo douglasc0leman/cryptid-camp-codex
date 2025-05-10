@@ -44,11 +44,11 @@ export default function StepThreeTrailDeck({ trailDeck, setTrailDeck, onBack, on
     const max = getMaxCountForRarity(card);
     if (count < 0 || count > max) return;
 
-    const newTotal = trailDeck.reduce((sum, entry) =>
-      entry.card.id === card.id ? sum + count : sum + entry.count, 0
-    );
+    const entry = trailDeck.find((e) => e.card.id === card.id);
+    const currentCount = entry?.count || 0;
+    const proposedTotal = totalCount - currentCount + count;
 
-    if (newTotal > 6) return;
+    if (proposedTotal > 6) return;
 
     setTrailDeck((prev: TrailEntry[]) => {
       const existing = prev.find((entry) => entry.card.id === card.id);
@@ -61,6 +61,7 @@ export default function StepThreeTrailDeck({ trailDeck, setTrailDeck, onBack, on
       }
     });
   };
+
 
   return (
     <div>
@@ -95,14 +96,31 @@ export default function StepThreeTrailDeck({ trailDeck, setTrailDeck, onBack, on
                       sizes="100vw"
                     />
                   </div>
-                  <input
-                    type="number"
-                    min={0}
-                    max={max}
-                    value={count}
-                    onChange={(e) => handleCountChange(card, Number(e.target.value))}
-                    className="absolute top-2 left-1/2 -translate-x-1/2 w-14 text-center bg-white/80 text-black rounded shadow-sm border border-gray-300 focus:outline-none"
-                  />
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center space-x-1 bg-white/80 text-black rounded px-2 py-1 shadow-sm">
+                    <button
+                      onPointerDown={() => handleCountChange(card, count - 1)}
+                      className="px-2 text-lg font-bold hover:text-red-600"
+                      disabled={count <= 0}
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      min={0}
+                      max={max}
+                      value={count}
+                      onChange={(e) => handleCountChange(card, Number(e.target.value))}
+                      className="w-12 text-center bg-transparent outline-none"
+                    />
+                    <button
+                      onPointerDown={() => handleCountChange(card, count + 1)}
+                      className="px-2 text-lg font-bold hover:text-green-600"
+                      disabled={count >= max || totalCount >= 6}
+                    >
+                      +
+                    </button>
+                  </div>
+
                 </div>
               );
             })}

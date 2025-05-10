@@ -104,14 +104,31 @@ export default function StepTwoLanternDeck({
                     height={400}
                     className="rounded"
                   />
-                  <input
-                    type="number"
-                    min={0}
-                    max={maxInput}
-                    value={count}
-                    onChange={(e) => handleCountChange(card, Number(e.target.value))}
-                    className="absolute bottom-2 left-1/2 -translate-x-1/2 w-14 text-center bg-white/80 text-black rounded shadow-sm border border-gray-300 focus:outline-none"
-                  />
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center space-x-1 bg-white/80 text-black rounded px-2 py-1 shadow-sm">
+                    <button
+                      onPointerDown={() => handleCountChange(card, count - 1)}
+                      className="px-2 text-lg font-bold hover:text-red-600"
+                      disabled={count <= 0}
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      min={0}
+                      max={maxInput}
+                      value={count}
+                      onChange={(e) => handleCountChange(card, Number(e.target.value))}
+                      className="w-12 text-center bg-transparent outline-none"
+                    />
+                    <button
+                      onPointerDown={() => handleCountChange(card, count + 1)}
+                      className="px-2 text-lg font-bold hover:text-green-600"
+                      disabled={count >= maxInput || totalCount >= 10}
+                    >
+                      +
+                    </button>
+                  </div>
+
                 </div>
               );
             })}

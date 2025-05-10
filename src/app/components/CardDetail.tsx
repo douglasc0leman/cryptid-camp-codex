@@ -8,6 +8,7 @@ import { CryptidCampCard } from '@/app/types/Card';
 import { ArrowUp, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { cabinColorMap } from '../utils/cabinStyles';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import HoloCard from './HoloCard';
 
 
 export default function CardDetail({ card }: { card: CryptidCampCard }) {
@@ -173,7 +174,12 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
                 height: isLandscape ? '360px' : '504px',
               }}
             >
-              <div className="relative w-full h-full overflow-hidden">
+              <div className="ml-6">
+              <HoloCard 
+                card={card}
+                />
+                </div>
+              {/* <div className="relative w-full h-full overflow-hidden">
                 <Image
                   src={card.watermark_url!}
                   alt={card.name}
@@ -186,7 +192,7 @@ export default function CardDetail({ card }: { card: CryptidCampCard }) {
                 className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               >
                 <Search className="w-8 h-8 text-white" />
-              </div>
+              </div> */}
             </div>
 
           </button>
